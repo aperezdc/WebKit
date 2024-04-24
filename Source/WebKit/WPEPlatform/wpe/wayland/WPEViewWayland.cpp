@@ -83,6 +83,29 @@ struct DMABufFeedback {
         {
         }
 
+        explicit FormatTable() = default;
+        explicit FormatTable(uint32_t size, int fd)
+            : size(size)
+            , data(static_cast<FormatTable::Data*>(mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fd, 0)))
+        {
+            if (data == MAP_FAILED) {
+                data = nullptr;
+                size = 0;
+            }
+        }
+
+        explicit operator bool() const
+        {
+            return size && data;
+        }
+
+        FormatTable& operator=(FormatTable&& other)
+        {
+            std::swap(size, other.size);
+            std::swap(data, other.data);
+            return *this;
+        }
+
         ~FormatTable()
         {
             if (data)
@@ -93,13 +116,9 @@ struct DMABufFeedback {
         Data* data { nullptr };
     };
 
-    static std::unique_ptr<DMABufFeedback> create(unsigned size, int fd)
+    static std::unique_ptr<DMABufFeedback> create()
     {
-        auto* data = static_cast<FormatTable::Data*>(mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fd, 0));
-        if (data == MAP_FAILED)
-            return nullptr;
-
-        return makeUnique<DMABufFeedback>(FormatTable(size, data));
+        return makeUnique<DMABufFeedback>(FormatTable());
     }
 
     explicit DMABufFeedback(FormatTable&& table)
@@ -406,6 +425,11 @@ static const struct zwp_linux_dmabuf_feedback_v1_listener linuxDMABufFeedbackLis
     [](void* data, struct zwp_linux_dmabuf_feedback_v1*)
     {
         auto* view = WPE_VIEW_WAYLAND(data);
+
+        // Compositor might not have sent the format table. In that case, try to reuse the previous one.
+        if (!view->priv->pendingDMABufFeedback->formatTable && view->priv->committedDMABufFeedback && view->priv->committedDMABufFeedback->formatTable)
+            view->priv->pendingDMABufFeedback->formatTable = WTFMove(view->priv->committedDMABufFeedback->formatTable);
+
         view->priv->committedDMABufFeedback = WTFMove(view->priv->pendingDMABufFeedback);
         view->priv->preferredDMABufFormats = nullptr;
         g_signal_emit_by_name(view, "preferred-dma-buf-formats-changed");
@@ -414,16 +438,22 @@ static const struct zwp_linux_dmabuf_feedback_v1_listener linuxDMABufFeedbackLis
     [](void* data, struct zwp_linux_dmabuf_feedback_v1*, int32_t fd, uint32_t size)
     {
         auto* priv = WPE_VIEW_WAYLAND(data)->priv;
-        priv->pendingDMABufFeedback = DMABufFeedback::create(size, fd);
+
+        // XXX: In theory the main_device callback is always invoked first.
+        //      Is there any compositor out there which does not conform to the
+        //      protocol spec?
+        if (!priv->pendingDMABufFeedback)
+            priv->pendingDMABufFeedback = DMABufFeedback::create();
+
+        priv->pendingDMABufFeedback->formatTable = DMABufFeedback::FormatTable(size, fd);
         close(fd);
     },
     // main_device
     [](void* data, struct zwp_linux_dmabuf_feedback_v1*, struct wl_array* device)
     {
         auto* priv = WPE_VIEW_WAYLAND(data)->priv;
-        // Compositor might not re-send the format table. In that case, try to reuse the previous one.
-        if (!priv->pendingDMABufFeedback && priv->committedDMABufFeedback)
-            priv->pendingDMABufFeedback = makeUnique<DMABufFeedback>(WTFMove(priv->committedDMABufFeedback->formatTable));
+        if (!priv->pendingDMABufFeedback)
+            priv->pendingDMABufFeedback = DMABufFeedback::create();
 
 #if USE(LIBDRM)
         memcpy(&priv->pendingDMABufFeedback->mainDevice, device->data, sizeof(dev_t));
