@@ -35,7 +35,11 @@ if (USE_SKIA)
 endif ()
 
 if (USE_SYSPROF_CAPTURE)
-    add_subdirectory(ThirdParty/libsysprof-capture)
+    if (USE_SYSTEM_SYSPROF_CAPTURE)
+        find_package(SysProfCapture)
+    else ()
+        add_subdirectory(ThirdParty/libsysprof-capture)
+    endif ()
 endif ()
 
 if (ENABLE_WEBINSPECTORUI)
