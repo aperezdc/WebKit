@@ -141,7 +141,7 @@ IGNORE_GCC_WARNINGS_BEGIN("restrict")
 IGNORE_GCC_WARNINGS_END
     buffer[spsPpsLength] = 0x25;
     buffer[spsPpsLength + 1] = 0xb8;
-    return WTFMove(buffer);
+    return buffer;
 }
 
 static inline void findEscapeRbspPatterns(const Vector<uint8_t>& frame, size_t offset, const Function<void(size_t, bool)>& callback)
@@ -198,8 +198,7 @@ size_t computeVP8PrefixOffset(std::span<const uint8_t> frame)
 
 SFrameCompatibilityPrefixBuffer computeVP8PrefixBuffer(std::span<const uint8_t> frame)
 {
-    Vector<uint8_t> prefix(frame.first(isVP8KeyFrame(frame) ? 10 : 3));
-    return WTFMove(prefix);
+    return Vector<uint8_t>(frame.first(isVP8KeyFrame(frame) ? 10 : 3));
 }
 
 } // namespace WebCore
