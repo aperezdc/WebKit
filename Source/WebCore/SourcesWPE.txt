@@ -71,6 +71,7 @@ platform/graphics/egl/GLFenceEGL.cpp @no-unify
 platform/graphics/egl/GLFenceGL.cpp @no-unify
 platform/graphics/egl/PlatformDisplaySurfaceless.cpp @no-unify
 
+platform/graphics/android/AndroidBuffer.cpp
 platform/graphics/android/PlatformDisplayAndroid.cpp
 
 platform/graphics/gbm/DMABufBuffer.cpp
