@@ -84,6 +84,9 @@ public:
 #if PLATFORM(GTK)
         Default,
 #endif
+#if OS(ANDROID)
+        Android,
+#endif
     };
 
     virtual Type type() const = 0;
