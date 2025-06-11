@@ -28,6 +28,7 @@
 #define __WPE_PLATFORM_H_INSIDE__
 
 #include <wpe/WPEBuffer.h>
+#include <wpe/WPEBufferAndroid.h>
 #include <wpe/WPEBufferDMABuf.h>
 #include <wpe/WPEBufferDMABufFormats.h>
 #include <wpe/WPEBufferSHM.h>
