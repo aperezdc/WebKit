@@ -39,10 +39,6 @@ set(WPEPlatformDRM_LIBRARIES
     ${GIO_UNIX_LIBRARIES}
 )
 
-if (ENABLE_JOURNALD_LOG)
-    list(APPEND WPEPlatformDRM_LIBRARIES Journald::Journald)
-endif ()
-
 set(WPEPlatformDRM_SOURCES_FOR_INTROSPECTION
     ${WPEPlatformDRM_INSTALLED_HEADERS}
     ${WPEPlatformDRM_SOURCES}
