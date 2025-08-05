@@ -122,6 +122,7 @@ UIProcess/API/C/wpe/WKPagePrivateWPE.cpp
 Shared/API/c/wpe/WKEventWPE.cpp
 
 UIProcess/API/glib/APIContentRuleListStoreGLib.cpp @no-unify
+UIProcess/API/glib/IconDatabase.cpp @no-unify
 UIProcess/API/glib/InputMethodFilter.cpp @no-unify
 UIProcess/API/glib/KeyAutoRepeatHandler.cpp @no-unify
 UIProcess/API/glib/WebKitApplicationInfo.cpp @no-unify
@@ -137,6 +138,7 @@ UIProcess/API/glib/WebKitDownload.cpp @no-unify
 UIProcess/API/glib/WebKitDownloadClient.cpp @no-unify
 UIProcess/API/glib/WebKitEditorState.cpp @no-unify
 UIProcess/API/glib/WebKitError.cpp @no-unify
+UIProcess/API/glib/WebKitFaviconDatabase.cpp @no-unify
 UIProcess/API/glib/WebKitFeature.cpp @no-unify
 UIProcess/API/glib/WebKitFileChooserRequest.cpp @no-unify
 UIProcess/API/glib/WebKitFindController.cpp @no-unify

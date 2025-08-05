@@ -20,6 +20,8 @@
 #include "config.h"
 #include "IconDatabase.h"
 
+#if PLATFORM(GTK) || (PLATFORM(WPE) && ENABLE(2022_GLIB_API))
+
 #include "Logging.h"
 #include <WebCore/BitmapImage.h>
 #include <WebCore/Image.h>
@@ -694,3 +696,5 @@ void IconDatabase::clear(CompletionHandler<void()>&& completionHandler)
 }
 
 } // namespace WebKit
+
+#endif

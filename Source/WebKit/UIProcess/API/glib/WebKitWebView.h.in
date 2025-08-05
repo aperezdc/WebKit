@@ -96,6 +96,10 @@ WEBKIT_DECLARE_DERIVABLE_TYPE (WebKitWebView, webkit_web_view, WEBKIT, WEB_VIEW,
 
 typedef struct _WebKitPrintOperation WebKitPrintOperation;
 
+#if PLATFORM(WPE) && ENABLE(2022_GLIB_API)
+typedef struct _WebKitFavicon WebKitFavicon;
+#endif
+
 /**
  * WebKitPolicyDecisionType:
  * @WEBKIT_POLICY_DECISION_TYPE_NAVIGATION_ACTION: This type of policy decision
@@ -592,8 +596,11 @@ webkit_web_view_go_to_back_forward_list_item         (WebKitWebView             
 WEBKIT_API const gchar *
 webkit_web_view_get_uri                              (WebKitWebView             *web_view);
 
-#if PLATFORM(GTK)
-#if USE(GTK4)
+#if PLATFORM(GTK) || (PLATFORM(WPE) && ENABLE(2022_GLIB_API))
+#if PLATFORM(WPE)
+WEBKIT_API WebKitFavicon *
+webkit_web_view_get_favicon                          (WebKitWebView             *web_view);
+#elif USE(GTK4)
 WEBKIT_API GdkTexture *
 webkit_web_view_get_favicon                          (WebKitWebView             *web_view);
 #else
