@@ -39,7 +39,7 @@
 #include <wtf/glib/GUniquePtr.h>
 #include <wtf/glib/WTFGType.h>
 
-#if PLATFORM(GTK) && ENABLE(2022_GLIB_API)
+#if ENABLE(2022_GLIB_API)
 #include "WebKitFaviconDatabasePrivate.h"
 #endif
 
@@ -95,7 +95,7 @@ struct _WebKitWebsiteDataManagerPrivate {
     CString baseDataDirectory;
     CString baseCacheDirectory;
 
-#if PLATFORM(GTK) && ENABLE(2022_GLIB_API)
+#if ENABLE(2022_GLIB_API)
     GRefPtr<WebKitFaviconDatabase> faviconDatabase;
 #endif
 
@@ -1085,7 +1085,7 @@ void webkit_website_data_manager_set_network_proxy_settings(WebKitWebsiteDataMan
 }
 #endif
 
-#if PLATFORM(GTK) && ENABLE(2022_GLIB_API)
+#if ENABLE(2022_GLIB_API)
 static String webkitWebsiteDataManagerGetFaviconDatabasePath(WebKitWebsiteDataManager* manager)
 {
     if (webkit_website_data_manager_is_ephemeral(manager))

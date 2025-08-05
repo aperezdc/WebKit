@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012, 2017 Igalia S.L.
+ * Copyright (C) 2012, 2017, 2025 Igalia S.L.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -35,6 +35,32 @@
 #endif
 
 G_BEGIN_DECLS
+
+#if PLATFORM(WPE) && ENABLE(2022_GLIB_API)
+#define WEBKIT_TYPE_FAVICON (webkit_favicon_get_type())
+typedef struct _WebKitFavicon WebKitFavicon;
+
+WEBKIT_API GType
+webkit_favicon_get_type   (void);
+
+WEBKIT_API WebKitFavicon *
+webkit_favicon_ref        (WebKitFavicon *favicon);
+
+WEBKIT_API void
+webkit_favicon_unref      (WebKitFavicon *favicon);
+
+WEBKIT_API guint
+webkit_favicon_get_width  (WebKitFavicon *favicon);
+
+WEBKIT_API guint
+webkit_favicon_get_height (WebKitFavicon *favicon);
+
+WEBKIT_API guint
+webkit_favicon_get_stride (WebKitFavicon *favicon);
+
+WEBKIT_API GBytes *
+webkit_favicon_get_bytes  (WebKitFavicon *favicon);
+#endif
 
 #define WEBKIT_FAVICON_DATABASE_ERROR           (webkit_favicon_database_error_quark())
 #define WEBKIT_TYPE_FAVICON_DATABASE            (webkit_favicon_database_get_type())
@@ -75,14 +101,16 @@ typedef enum {
 WEBKIT_API GQuark
 webkit_favicon_database_error_quark        (void);
 
-#if PLATFORM(GTK)
+#if PLATFORM(GTK) || (PLATFORM(WPE) && ENABLE(2022_GLIB_API))
 WEBKIT_API void
 webkit_favicon_database_get_favicon        (WebKitFaviconDatabase *database,
                                             const gchar           *page_uri,
                                             GCancellable          *cancellable,
                                             GAsyncReadyCallback    callback,
                                             gpointer               user_data);
+#endif
 
+#if PLATFORM(GTK)
 #if USE(GTK4)
 WEBKIT_API GdkTexture *
 webkit_favicon_database_get_favicon_finish (WebKitFaviconDatabase *database,
@@ -94,6 +122,13 @@ webkit_favicon_database_get_favicon_finish (WebKitFaviconDatabase *database,
                                             GAsyncResult          *result,
                                             GError               **error);
 #endif
+#endif
+
+#if PLATFORM(WPE) && ENABLE(2022_GLIB_API)
+WEBKIT_API WebKitFavicon *
+webkit_favicon_database_get_favicon_finish (WebKitFaviconDatabase *database,
+                                            GAsyncResult          *result,
+                                            GError               **error);
 #endif
 
 WEBKIT_API gchar *

@@ -228,6 +228,7 @@ set(WPE_API_HEADER_TEMPLATES
 
 if (ENABLE_2022_GLIB_API)
     list(APPEND WPE_API_HEADER_TEMPLATES
+        ${WEBKIT_DIR}/UIProcess/API/glib/WebKitFaviconDatabase.h.in
         ${WEBKIT_DIR}/UIProcess/API/glib/WebKitNetworkSession.h.in
     )
 endif ()
