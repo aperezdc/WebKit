@@ -64,6 +64,13 @@
 #include <wtf/UniStdExtras.h>
 #endif
 
+#if OS(ANDROID)
+#include <WebCore/BufferFormatAndroid.h>
+#include <android/hardware_buffer.h>
+#include <drm/drm_fourcc.h>
+#include <wtf/android/RefPtrAndroid.h>
+#endif
+
 #if USE(GLIB_EVENT_LOOP)
 #include <wtf/glib/RunLoopSourcePriority.h>
 #endif
@@ -100,7 +107,7 @@ AcceleratedSurface::AcceleratedSurface(WebPage& webPage, Function<void()>&& fram
     , m_useExplicitSync(useExplicitSync())
     , m_isOpaque(!webPage.backgroundColor().has_value() || webPage.backgroundColor()->isOpaque())
 {
-#if USE(GBM) && (PLATFORM(GTK) || ENABLE(WPE_PLATFORM))
+#if (PLATFORM(GTK) || ENABLE(WPE_PLATFORM)) && (USE(GBM) || OS(ANDROID))
     if (m_swapChain.type() == SwapChain::Type::EGLImage)
         m_swapChain.setupBufferFormat(m_webPage->preferredBufferFormats(), m_isOpaque);
 #endif
@@ -316,7 +323,76 @@ AcceleratedSurface::RenderTargetEGLImage::RenderTargetEGLImage(uint64_t surfaceI
 
     WebProcess::singleton().parentProcessConnection()->send(Messages::AcceleratedBackingStore::DidCreateDMABufBuffer(m_id, size, format, WTFMove(fds), WTFMove(offsets), WTFMove(strides), modifier, usage), surfaceID);
 }
+#endif // USE(GBM)
 
+#if OS(ANDROID)
+static uint64_t usageToAHardwareBufferUsage(RendererBufferFormat::Usage usage)
+{
+    switch (usage) {
+    case RendererBufferFormat::Usage::Rendering:
+        return AHARDWAREBUFFER_USAGE_GPU_FRAMEBUFFER;
+    case RendererBufferFormat::Usage::Mapping:
+        return AHARDWAREBUFFER_USAGE_CPU_READ_RARELY | AHARDWAREBUFFER_USAGE_GPU_FRAMEBUFFER;
+    case RendererBufferFormat::Usage::Scanout:
+        // FIXME(297316): Add the AHARDWAREBUFFER_USAGE_CPU_READ_RARELY flag to allow using AHardwareBuffer_lock()
+        return AHARDWAREBUFFER_USAGE_GPU_FRAMEBUFFER | AHARDWAREBUFFER_USAGE_FRONT_BUFFER | AHARDWAREBUFFER_USAGE_COMPOSER_OVERLAY;
+    }
+}
+
+std::unique_ptr<AcceleratedSurface::RenderTarget> AcceleratedSurface::RenderTargetEGLImage::create(uint64_t surfaceID, const WebCore::IntSize& size, const BufferFormat& bufferFormat)
+{
+    const auto hardwareBufferFormat = toAHardwareBufferFormat(bufferFormat.fourcc);
+    if (!hardwareBufferFormat) {
+        LOG_ERROR("Failed to create AHardwareBuffer of size %dx%d: no valid format found (FourCC=%s)",
+            size.width(), size.height(), FourCC(bufferFormat.fourcc).string().data());
+        return nullptr;
+    }
+
+    AHardwareBuffer_Desc description = { };
+    description.width = size.width();
+    description.height = size.height();
+    description.layers = 1;
+    description.format = hardwareBufferFormat.value();
+    description.usage = usageToAHardwareBufferUsage(bufferFormat.usage);
+
+    AHardwareBuffer* hardwareBufferPtr { nullptr };
+    int result = AHardwareBuffer_allocate(&description, &hardwareBufferPtr);
+    if (result) {
+        LOG_ERROR("Failed to create AHardwareBuffer of size %dx%d, format %s, error code: %d",
+            size.width(), size.height(), FourCC(bufferFormat.fourcc).string().data(), result);
+        return nullptr;
+    }
+    RefPtr hardwareBuffer = adoptRef(hardwareBufferPtr);
+
+    const Vector<EGLAttrib> attributes { EGL_IMAGE_PRESERVED, EGL_TRUE, EGL_NONE };
+
+    auto& display = WebCore::PlatformDisplay::sharedDisplay();
+    auto clientBuffer = eglGetNativeClientBufferANDROID(hardwareBuffer.get());
+    auto image = display.createEGLImage(EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_ANDROID, clientBuffer, attributes);
+    if (image == EGL_NO_IMAGE) {
+        LOG_ERROR("Failed to bind AHardwareBuffer to an EGLImage. This is typically caused by "
+            "a version mismatch between the gralloc implementation and the OpenGL/EGL driver. "
+            "Please contact your GPU vendor to resolve this problem.");
+        return nullptr;
+    }
+
+    return makeUnique<RenderTargetEGLImage>(surfaceID, size, image, WTFMove(hardwareBuffer));
+}
+
+AcceleratedSurface::RenderTargetEGLImage::RenderTargetEGLImage(uint64_t surfaceID, const WebCore::IntSize& size, EGLImage image, RefPtr<AHardwareBuffer>&& hardwareBuffer)
+    : RenderTargetShareableBuffer(surfaceID, size)
+    , m_image(image)
+{
+    glGenRenderbuffers(1, &m_colorBuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, m_colorBuffer);
+    glEGLImageTargetRenderbufferStorageOES(GL_RENDERBUFFER, m_image);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, m_colorBuffer);
+
+    WebProcess::singleton().parentProcessConnection()->send(Messages::AcceleratedBackingStore::DidCreateAndroidBuffer(m_id, WTFMove(hardwareBuffer)), surfaceID);
+}
+#endif // OS(ANDROID)
+
+#if USE(GBM) || OS(ANDROID)
 AcceleratedSurface::RenderTargetEGLImage::~RenderTargetEGLImage()
 {
     if (m_colorBuffer)
@@ -325,7 +401,7 @@ AcceleratedSurface::RenderTargetEGLImage::~RenderTargetEGLImage()
     if (m_image)
         PlatformDisplay::sharedDisplay().destroyEGLImage(m_image);
 }
-#endif
+#endif // USE(GBM) || OS(ANDROID)
 
 std::unique_ptr<AcceleratedSurface::RenderTarget> AcceleratedSurface::RenderTargetSHMImage::create(uint64_t surfaceID, const IntSize& size)
 {
@@ -526,7 +602,7 @@ AcceleratedSurface::SwapChain::SwapChain(uint64_t surfaceID)
     }
 }
 
-#if USE(GBM) && (PLATFORM(GTK) || ENABLE(WPE_PLATFORM))
+#if (PLATFORM(GTK) || ENABLE(WPE_PLATFORM)) && (USE(GBM) || OS(ANDROID))
 void AcceleratedSurface::SwapChain::setupBufferFormat(const Vector<RendererBufferFormat>& preferredFormats, bool isOpaque)
 {
     auto isOpaqueFormat = [](uint32_t fourcc) -> bool {
@@ -559,8 +635,9 @@ void AcceleratedSurface::SwapChain::setupBufferFormat(const Vector<RendererBuffe
                     continue;
 
                 newBufferFormat.usage = bufferFormat.usage;
-                newBufferFormat.drmDevice = bufferFormat.drmDevice;
                 newBufferFormat.fourcc = preferredFormat.fourcc;
+#if USE(GBM)
+                newBufferFormat.drmDevice = bufferFormat.drmDevice;
                 if (preferredFormat.modifiers[0] == DRM_FORMAT_MOD_INVALID)
                     newBufferFormat.modifiers = preferredFormat.modifiers;
                 else {
@@ -570,6 +647,7 @@ void AcceleratedSurface::SwapChain::setupBufferFormat(const Vector<RendererBuffe
                         return std::nullopt;
                     });
                 }
+#endif // USE(GBM)
 
                 if (matchesOpacity)
                     break;
@@ -583,6 +661,7 @@ void AcceleratedSurface::SwapChain::setupBufferFormat(const Vector<RendererBuffe
     if (!newBufferFormat.fourcc || newBufferFormat == m_bufferFormat)
         return;
 
+#if USE(GBM)
     if (!newBufferFormat.drmDevice.isNull()) {
         if (newBufferFormat.drmDevice == m_bufferFormat.drmDevice && newBufferFormat.usage == m_bufferFormat.usage)
             newBufferFormat.gbmDevice = m_bufferFormat.gbmDevice;
@@ -591,11 +670,12 @@ void AcceleratedSurface::SwapChain::setupBufferFormat(const Vector<RendererBuffe
             newBufferFormat.gbmDevice = DRMDeviceManager::singleton().gbmDevice(newBufferFormat.drmDevice, nodeType);
         }
     }
+#endif // USE(GBM)
 
     m_bufferFormat = WTFMove(newBufferFormat);
     m_bufferFormatChanged = true;
 }
-#endif
+#endif // USE(GBM) || OS(ANDROID)
 
 bool AcceleratedSurface::SwapChain::resize(const IntSize& size)
 {
@@ -616,8 +696,7 @@ bool AcceleratedSurface::SwapChain::resize(const IntSize& size)
 std::unique_ptr<AcceleratedSurface::RenderTarget> AcceleratedSurface::SwapChain::createTarget() const
 {
     switch (m_type) {
-#if PLATFORM(GTK) || ENABLE(WPE_PLATFORM)
-#if USE(GBM)
+#if (PLATFORM(GTK) || ENABLE(WPE_PLATFORM)) && (USE(GBM) || OS(ANDROID))
     case Type::EGLImage:
         return RenderTargetEGLImage::create(m_surfaceID, m_size, m_bufferFormat);
 #endif
@@ -625,7 +704,6 @@ std::unique_ptr<AcceleratedSurface::RenderTarget> AcceleratedSurface::SwapChain:
         return RenderTargetTexture::create(m_surfaceID, m_size);
     case Type::SharedMemory:
         return RenderTargetSHMImage::create(m_surfaceID, m_size);
-#endif
 #if USE(WPE_RENDERER)
     case Type::WPEBackend:
         ASSERT_NOT_REACHED();
@@ -644,7 +722,7 @@ AcceleratedSurface::RenderTarget* AcceleratedSurface::SwapChain::nextTarget()
         return m_lockedTargets[0].get();
 #endif
 
-#if USE(GBM) && (PLATFORM(GTK) || ENABLE(WPE_PLATFORM))
+#if (PLATFORM(GTK) || ENABLE(WPE_PLATFORM)) && (USE(GBM) || OS(ANDROID))
     if (m_type == Type::EGLImage) {
         Locker locker { m_bufferFormatLock };
         if (m_bufferFormatChanged) {
@@ -725,7 +803,7 @@ void AcceleratedSurface::SwapChain::addDamage(const std::optional<Damage>& damag
 }
 #endif
 
-#if PLATFORM(WPE) && USE(GBM) && ENABLE(WPE_PLATFORM)
+#if PLATFORM(WPE) && ENABLE(WPE_PLATFORM) && (USE(GBM) || OS(ANDROID))
 void AcceleratedSurface::preferredBufferFormatsDidChange()
 {
     if (m_swapChain.type() != SwapChain::Type::EGLImage)
@@ -761,7 +839,7 @@ bool AcceleratedSurface::backgroundColorDidChange()
 
     m_isOpaque = isOpaque;
 
-#if USE(GBM) && (PLATFORM(GTK) || ENABLE(WPE_PLATFORM))
+#if (PLATFORM(GTK) || ENABLE(WPE_PLATFORM)) && (USE(GBM) || OS(ANDROID))
     if (m_swapChain.type() == SwapChain::Type::EGLImage)
         m_swapChain.setupBufferFormat(m_webPage->preferredBufferFormats(), m_isOpaque);
 #endif

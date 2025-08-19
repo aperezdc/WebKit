@@ -274,6 +274,9 @@ static String renderBufferDescription(WebKitURISchemeRequest* request)
         case RendererBufferDescription::Type::SharedMemory:
             bufferDescription.append("Shared Memory: "_s, String::fromUTF8(formatName));
             break;
+        case RendererBufferDescription::Type::AHardwareBuffer:
+            bufferDescription.append("AHardwareBuffer: "_s, String::fromUTF8(formatName));
+            break;
         }
         free(formatName);
         switch (description.usage) {

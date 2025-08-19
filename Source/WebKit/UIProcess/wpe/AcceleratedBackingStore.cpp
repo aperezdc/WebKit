@@ -128,6 +128,17 @@ void AcceleratedBackingStore::didCreateSHMBuffer(uint64_t id, WebCore::Shareable
     m_buffers.add(id, WTFMove(buffer));
 }
 
+#if OS(ANDROID)
+void AcceleratedBackingStore::didCreateAndroidBuffer(uint64_t id, RefPtr<AHardwareBuffer>&& hardwareBuffer)
+{
+    RELEASE_ASSERT(hardwareBuffer);
+
+    GRefPtr buffer = adoptGRef(WPE_BUFFER(wpe_buffer_android_new(wpe_view_get_display(m_wpeView.get()), hardwareBuffer.get())));
+    m_bufferIDs.add(buffer.get(), id);
+    m_buffers.add(id, WTFMove(buffer));
+}
+#endif // OS(ANDROID)
+
 void AcceleratedBackingStore::didDestroyBuffer(uint64_t id)
 {
     if (auto buffer = m_buffers.take(id))
@@ -216,6 +227,13 @@ RendererBufferDescription AcceleratedBackingStore::bufferDescription() const
         }
         description.usage = RendererBufferFormat::Usage::Rendering;
     }
+#if OS(ANDROID)
+    else if (WPE_IS_BUFFER_ANDROID(buffer)) {
+        auto* bufferAndroid = WPE_BUFFER_ANDROID(buffer);
+        description.type = RendererBufferDescription::Type::AHardwareBuffer;
+        description.fourcc = wpe_buffer_android_get_format(bufferAndroid);
+    }
+#endif // OS(ANDROID)
 
     return description;
 }

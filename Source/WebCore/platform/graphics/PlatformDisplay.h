@@ -91,7 +91,7 @@ public:
 
     EGLImage createEGLImage(EGLContext, EGLenum target, EGLClientBuffer, const Vector<EGLAttrib>&) const;
     bool destroyEGLImage(EGLImage) const;
-#if USE(GBM)
+#if USE(GBM) || OS(ANDROID)
     const Vector<GLDisplay::DMABufFormat>& dmabufFormats();
 #if USE(GSTREAMER)
     const Vector<GLDisplay::DMABufFormat>& dmabufFormatsForVideo();

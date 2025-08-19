@@ -44,11 +44,11 @@
 #include <wpe/wpe-platform.h>
 #endif
 
-#if USE(GBM)
+#if USE(GBM) || OS(ANDROID)
 #include "RendererBufferFormat.h"
 #endif
 
-#if USE(GBM) && ENABLE(WPE_PLATFORM)
+#if ENABLE(WPE_PLATFORM) && (USE(GBM) || OS(ANDROID))
 #include "MessageSenderInlines.h"
 #include "WebPageMessages.h"
 #endif
@@ -123,7 +123,7 @@ void WebPageProxy::setInputMethodState(std::optional<InputMethodState>&& state)
         static_cast<PageClientImpl&>(*pageClient).setInputMethodState(WTFMove(state));
 }
 
-#if USE(GBM)
+#if USE(GBM) || OS(ANDROID)
 Vector<RendererBufferFormat> WebPageProxy::preferredBufferFormats() const
 {
 #if ENABLE(WPE_PLATFORM)
@@ -135,8 +135,11 @@ Vector<RendererBufferFormat> WebPageProxy::preferredBufferFormats() const
     if (!formats)
         return { };
 
-    Vector<RendererBufferFormat> bufferFormats;
+#if USE(GBM)
     WPEDRMDevice* mainDevice = wpe_buffer_dma_buf_formats_get_device(formats);
+#endif
+
+    Vector<RendererBufferFormat> bufferFormats;
     auto groupCount = wpe_buffer_dma_buf_formats_get_n_groups(formats);
     for (unsigned i = 0; i < groupCount; ++i) {
         RendererBufferFormat bufferFormat;
@@ -152,11 +155,13 @@ Vector<RendererBufferFormat> WebPageProxy::preferredBufferFormats() const
             break;
         }
 
+#if USE(GBM)
         WPEDRMDevice* targetDevice = wpe_buffer_dma_buf_formats_get_group_device(formats, i);
         if (!targetDevice)
             targetDevice = mainDevice;
         if (targetDevice)
             bufferFormat.drmDevice = { CString(wpe_drm_device_get_primary_node(targetDevice)), CString(wpe_drm_device_get_render_node(targetDevice)) };
+#endif
 
         auto formatsCount = wpe_buffer_dma_buf_formats_get_group_n_formats(formats, i);
         bufferFormat.formats.reserveInitialCapacity(formatsCount);
@@ -182,7 +187,7 @@ Vector<RendererBufferFormat> WebPageProxy::preferredBufferFormats() const
 #endif
 }
 
-#if USE(GBM) && ENABLE(WPE_PLATFORM)
+#if ENABLE(WPE_PLATFORM)
 void WebPageProxy::preferredBufferFormatsDidChange()
 {
     auto* view = wpeView();

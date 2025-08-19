@@ -475,7 +475,7 @@ enum class WebEventType : uint8_t;
 struct ContentWorldData;
 struct ContentWorldIdentifierType;
 struct CoreIPCAuditToken;
-#if (PLATFORM(GTK) || PLATFORM(WPE)) && USE(GBM)
+#if (PLATFORM(GTK) || PLATFORM(WPE)) && (USE(GBM) || OS(ANDROID))
 struct RendererBufferFormat;
 #endif
 struct DataDetectionResult;
@@ -1960,10 +1960,8 @@ public:
     const Logger& logger() const;
     uint64_t logIdentifier() const;
 
-#if PLATFORM(GTK) || PLATFORM(WPE)
-#if USE(GBM)
+#if (PLATFORM(GTK) || PLATFORM(WPE)) && (USE(GBM) || OS(ANDROID))
     const Vector<RendererBufferFormat>& preferredBufferFormats() const { return m_preferredBufferFormats; }
-#endif
 #endif
 
 #if ENABLE(EXTENSION_CAPABILITIES)
@@ -2521,7 +2519,7 @@ private:
     void sendMessageToWebProcessExtensionWithReply(UserMessage&&, CompletionHandler<void(UserMessage&&)>&&);
 #endif
 
-#if PLATFORM(WPE) && USE(GBM) && ENABLE(WPE_PLATFORM)
+#if PLATFORM(WPE) && ENABLE(WPE_PLATFORM) && (USE(GBM) || OS(ANDROID))
     void preferredBufferFormatsDidChange(Vector<RendererBufferFormat>&&);
 #endif
 
@@ -3061,10 +3059,8 @@ private:
     WebCore::Color m_accentColor;
 #endif
 
-#if PLATFORM(GTK) || PLATFORM(WPE)
-#if USE(GBM)
+#if (PLATFORM(GTK) || PLATFORM(WPE)) && (USE(GBM) || OS(ANDROID))
     Vector<RendererBufferFormat> m_preferredBufferFormats;
-#endif
 #endif
 
 #if ENABLE(APP_BOUND_DOMAINS)

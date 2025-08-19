@@ -20,8 +20,10 @@
 #include "config.h"
 #include "GLDisplay.h"
 
+#include "FourCC.h"
 #include "GLContext.h"
 #include <wtf/Locker.h>
+#include "Logging.h"
 #include <wtf/MainThread.h>
 #include <wtf/text/StringView.h>
 
@@ -32,7 +34,12 @@
 #include <EGL/eglext.h>
 #endif
 
-#if USE(GBM)
+#if OS(ANDROID)
+#include "BufferFormatAndroid.h"
+#include <android/hardware_buffer.h>
+#include <drm/drm_fourcc.h>
+#include <wtf/NeverDestroyed.h>
+#elif USE(GBM)
 #include <drm_fourcc.h>
 #endif
 
@@ -226,5 +233,50 @@ const Vector<GLDisplay::DMABufFormat>& GLDisplay::dmabufFormatsForVideo()
 }
 #endif
 #endif // USE(GBM)
+
+#if OS(ANDROID)
+const Vector<GLDisplay::DMABufFormat>& GLDisplay::dmabufFormats()
+{
+    static LazyNeverDestroyed<Vector<GLDisplay::DMABufFormat>> formats;
+    static std::once_flag flag;
+    std::call_once(flag, []() {
+        formats.construct();
+
+        // This list includes those formats supported by AHardwareBuffer which are suitable for rendering content, sorted by preference. See:
+        // https://android.googlesource.com/platform/frameworks/native/+/4f463a6b1de9198963dc6aff74154a504ba3f8f6/libs/nativewindow/include/android/hardware_buffer.h#66
+        static constexpr FourCC drmFormats[] = {
+            DRM_FORMAT_RGBA8888,
+            DRM_FORMAT_RGBX8888,
+            DRM_FORMAT_RGB565,
+            DRM_FORMAT_RGBA1010102,
+            DRM_FORMAT_RGB888,
+        };
+
+        Vector<GLDisplay::DMABufFormat> result;
+        AHardwareBuffer_Desc bufferDesc { };
+        bufferDesc.usage = AHARDWAREBUFFER_USAGE_GPU_FRAMEBUFFER;
+
+        for (const auto& drmFormat : drmFormats) {
+            const auto ahbFormat = toAHardwareBufferFormat(drmFormat);
+            if (!ahbFormat) {
+                RELEASE_LOG_DEBUG(IOSurface, "AHB: Cannot map DRM format '%s', skipped", drmFormat.string().data());
+                continue;
+            }
+
+            bufferDesc.format = ahbFormat.value();
+            if (AHardwareBuffer_isSupported(&bufferDesc)) {
+                RELEASE_LOG_DEBUG(IOSurface, "AHB: Adding supported DRM format '%s'", drmFormat.string().data());
+                formats->append(GLDisplay::DMABufFormat(drmFormat.value));
+            } else
+                RELEASE_LOG_DEBUG(IOSurface, "AHB: Skipping unsupported DRM format '%s'", drmFormat.string().data());
+        }
+
+        RELEASE_LOG_DEBUG(IOSurface, "AHB: There are %zu supported formats", result.size());
+        return result;
+    });
+
+    return formats.get();
+}
+#endif // OS(ANDROID)
 
 } // namespace WebCore
