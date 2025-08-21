@@ -48,6 +48,10 @@
 #include <wtf/glib/GUniquePtr.h>
 #endif
 
+#if OS(ANDROID)
+#include <android/hardware_buffer.h>
+#endif
+
 #if OS(DARWIN)
 #define MSG_NOSIGNAL 0
 #endif
@@ -93,9 +97,23 @@ public:
     void setNull() { m_isNull = true; }
     bool isNull() const { return m_isNull; }
 
+#if OS(ANDROID)
+    enum class Type : bool {
+        FileDescriptor,
+        HardwareBuffer,
+    };
+
+    Type type() const { return m_type; }
+    void setType(Type type) { m_type = type; }
+#endif // OS(ANDROID)
+
 private:
     // The AttachmentInfo will be copied using memcpy, so all members must be trivially copyable.
     bool m_isNull;
+
+#if OS(ANDROID)
+    Type m_type;
+#endif
 };
 
 static_assert(sizeof(MessageInfo) + sizeof(AttachmentInfo) * attachmentMaxAmount <= messageMaxSize, "messageMaxSize is too small.");
@@ -181,8 +199,19 @@ bool Connection::processMessage()
     if (attachmentCount) {
         memcpySpan(asMutableByteSpan(attachmentInfo.mutableSpan()), consumeSpan(messageData, sizeof(AttachmentInfo) * attachmentCount));
         for (size_t i = 0; i < attachmentCount; ++i) {
-            if (!attachmentInfo[i].isNull())
+            if (!attachmentInfo[i].isNull()) {
+#if OS(ANDROID)
+                switch (attachmentInfo[i].type()) {
+                case AttachmentInfo::Type::FileDescriptor:
+                    attachmentFileDescriptorCount++;
+                    break;
+                case AttachmentInfo::Type::HardwareBuffer:
+                    break;
+                }
+#else
                 attachmentFileDescriptorCount++;
+#endif // OS(ANDROID)
+            }
         }
 
         if (messageInfo.isBodyOutOfLine())
@@ -192,11 +221,29 @@ bool Connection::processMessage()
     Vector<Attachment> attachments(attachmentCount);
     RefPtr<WebCore::SharedMemory> oolMessageBody;
 
+#if OS(ANDROID)
+    size_t fdIndex = 0;
+    size_t hardwareBufferIndex = 0;
+    for (size_t i = 0; i < attachmentCount; ++i) {
+        switch (attachmentInfo[i].type()) {
+        case AttachmentInfo::Type::FileDescriptor:
+            attachments[attachmentCount - i - 1] = UnixFileDescriptor {
+                attachmentInfo[i].isNull() ? -1 : m_fileDescriptors[fdIndex++],
+                UnixFileDescriptor::Adopt
+            };
+            break;
+        case AttachmentInfo::Type::HardwareBuffer:
+            attachments[attachmentCount - i - 1] = WTFMove(m_incomingHardwareBuffers[hardwareBufferIndex++]);
+            break;
+        }
+    }
+#else
     size_t fdIndex = 0;
     for (size_t i = 0; i < attachmentCount; ++i) {
         int fd = !attachmentInfo[i].isNull() ? m_fileDescriptors[fdIndex++] : -1;
         attachments[attachmentCount - i - 1] = UnixFileDescriptor { fd, UnixFileDescriptor::Adopt };
     }
+#endif // OS(ANDROID)
 
     if (messageInfo.isBodyOutOfLine()) {
         ASSERT(messageInfo.bodySize());
@@ -320,6 +367,14 @@ static ssize_t readBytesFromSocket(int socketDescriptor, Vector<uint8_t>& buffer
 
 void Connection::readyReadHandler()
 {
+#if OS(ANDROID)
+    if (m_pendingIncomingHardwareBufferCount) {
+        if (receiveIncomingHardwareBuffers())
+            RELEASE_ASSERT(processMessage());
+        return;
+    }
+#endif
+
     while (true) {
         ssize_t bytesRead = readBytesFromSocket(socketDescriptor(), m_readBuffer, m_fileDescriptors);
 
@@ -344,6 +399,18 @@ void Connection::readyReadHandler()
             connectionDidClose();
             return;
         }
+
+#if OS(ANDROID)
+        RELEASE_ASSERT(m_readBuffer.size() >= sizeof(MessageInfo));
+        const auto& messageInfo = reinterpretCastSpanStartTo<MessageInfo>(m_readBuffer.span());
+        if (auto hardwareBufferCount = messageInfo.validHardwareBufferCount()) {
+            RELEASE_ASSERT(m_incomingHardwareBuffers.isEmpty());
+            RELEASE_ASSERT(!m_pendingIncomingHardwareBufferCount);
+            m_pendingIncomingHardwareBufferCount = hardwareBufferCount;
+            if (!receiveIncomingHardwareBuffers())
+                return;
+        }
+#endif // OS(ANDROID)
 
         // Process messages from data received.
         while (true) {
@@ -411,7 +478,11 @@ void Connection::platformOpen()
 
 bool Connection::platformCanSendOutgoingMessages() const
 {
+#if OS(ANDROID)
+    return !m_pendingOutputMessage && m_outgoingHardwareBuffers.isEmpty();
+#else
     return !m_pendingOutputMessage;
+#endif
 }
 
 bool Connection::sendOutgoingMessage(UniqueRef<Encoder>&& encoder)
@@ -448,6 +519,11 @@ bool Connection::sendOutputMessage(UnixMessage& outputMessage)
 {
     ASSERT(!m_pendingOutputMessage);
 
+#if OS(ANDROID)
+    RELEASE_ASSERT(m_outgoingHardwareBuffers.isEmpty());
+    Deque<RefPtr<AHardwareBuffer>, 2> hardwareBuffers;
+#endif
+
     auto& messageInfo = outputMessage.messageInfo();
     struct msghdr message;
     memset(&message, 0, sizeof(message));
@@ -468,10 +544,26 @@ bool Connection::sendOutputMessage(UnixMessage& outputMessage)
     if (!attachments.isEmpty()) {
         int* fdPtr = 0;
 
+#if OS(ANDROID)
+        size_t attachmentFDBufferLength = 0;
+        for (const auto& attachment : attachments) {
+            switchOn(attachment,
+                [&attachmentFDBufferLength](const UnixFileDescriptor& fd) {
+                    if (!!fd)
+                        ++attachmentFDBufferLength;
+                },
+                [&hardwareBuffers](const RefPtr<AHardwareBuffer>& buffer) {
+                    if (buffer)
+                        hardwareBuffers.append(buffer);
+                }
+            );
+        }
+#else
         size_t attachmentFDBufferLength = std::count_if(attachments.begin(), attachments.end(),
             [](const Attachment& attachment) {
                 return !!attachment;
             });
+#endif // OS(ANDROID)
 
         if (attachmentFDBufferLength) {
             attachmentFDBuffer = MallocSpan<char>::zeroedMalloc(CMSG_SPACE(sizeof(int) * attachmentFDBufferLength));
@@ -490,11 +582,27 @@ bool Connection::sendOutputMessage(UnixMessage& outputMessage)
         attachmentInfo.resize(attachments.size());
         int fdIndex = 0;
         for (size_t i = 0; i < attachments.size(); ++i) {
+#if OS(ANDROID)
+            bool isValid = switchOn(attachments[i],
+                [fdPtr, &fdIndex](const UnixFileDescriptor& fd) {
+                    if (!fd)
+                        return false;
+                    fdPtr[fdIndex++] = fd.value();
+                    return true;
+                },
+                [](const RefPtr<AHardwareBuffer>& buffer) {
+                    return !!buffer;
+                }
+            );
+            if (!isValid)
+                attachmentInfo[i].setNull();
+#else
             if (!!attachments[i]) {
                 ASSERT(fdPtr);
                 fdPtr[fdIndex++] = attachments[i].value();
             } else
                 attachmentInfo[i].setNull();
+#endif // OS(ANDROID)
         }
 
         iov[iovLength].iov_base = attachmentInfo.mutableSpan().data();
@@ -559,8 +667,90 @@ bool Connection::sendOutputMessage(UnixMessage& outputMessage)
         return false;
     }
 
+#if OS(ANDROID)
+    RELEASE_ASSERT(m_outgoingHardwareBuffers.isEmpty());
+    m_outgoingHardwareBuffers = WTFMove(hardwareBuffers);
+    return sendOutgoingHardwareBuffers();
+#else
+    return true;
+#endif
+}
+
+#if OS(ANDROID)
+bool Connection::sendOutgoingHardwareBuffers()
+{
+    while (!m_outgoingHardwareBuffers.isEmpty()) {
+        auto& buffer = m_outgoingHardwareBuffers.first();
+        RELEASE_ASSERT(buffer);
+
+        // There is no need to check for EINTR, it is handled internally.
+        int result = AHardwareBuffer_sendHandleToUnixSocket(buffer.get(), socketDescriptor());
+        if (!result) {
+            m_outgoingHardwareBuffers.removeFirst();
+            continue;
+        }
+
+        if (result == -EAGAIN || result == -EWOULDBLOCK) {
+            m_writeSocketMonitor.start(m_socket.get(), G_IO_OUT, m_connectionQueue->runLoop(), [this, protectedThis = Ref { *this }] (GIOCondition condition) -> gboolean {
+                if (condition & G_IO_OUT) {
+                    RELEASE_ASSERT(!m_outgoingHardwareBuffers.isEmpty());
+                    // We can't stop the monitor from this lambda, because stop destroys the lambda.
+                    m_connectionQueue->dispatch([this, protectedThis = Ref { *this }] {
+                        m_writeSocketMonitor.stop();
+                        if (m_isConnected) {
+                            if (sendOutgoingHardwareBuffers())
+                                sendOutgoingMessages();
+                        }
+                    });
+                }
+                return G_SOURCE_REMOVE;
+            });
+            return false;
+        }
+
+        if (result == -EPIPE || result == -ECONNRESET) {
+            connectionDidClose();
+            return false;
+        }
+
+        if (m_isConnected) {
+            LOG_ERROR("Error sending AHardwareBuffer on socket %d in process %d: %s", socketDescriptor(), getpid(), safeStrerror(-result).data());
+            connectionDidClose();
+        }
+        return false;
+    }
+
+    RELEASE_ASSERT(m_outgoingHardwareBuffers.isEmpty());
     return true;
 }
+
+bool Connection::receiveIncomingHardwareBuffers()
+{
+    while (m_pendingIncomingHardwareBufferCount) {
+        AHardwareBuffer* buffer { nullptr };
+        int result = AHardwareBuffer_recvHandleFromUnixSocket(socketDescriptor(), &buffer);
+        if (!result) {
+            m_pendingIncomingHardwareBufferCount--;
+            m_incomingHardwareBuffers.append(adoptRef(buffer));
+            continue;
+        }
+
+        if (result == -EAGAIN || result == -EWOULDBLOCK)
+            return false;
+
+        if (result == -ECONNRESET)
+            connectionDidClose();
+
+        if (m_isConnected) {
+            LOG_ERROR("Error receiving AHardwareBuffer on socket %d in process %d: %s", socketDescriptor(), getpid(), safeStrerror(-result).data());
+            connectionDidClose();
+        }
+        return false;
+    }
+
+    return true;
+}
+#endif // OS(ANDROID)
 
 SocketPair createPlatformConnection(unsigned options)
 {
