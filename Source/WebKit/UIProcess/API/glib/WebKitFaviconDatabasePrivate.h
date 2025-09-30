@@ -23,10 +23,17 @@
 #include "WebKitFaviconDatabase.h"
 #include <WebCore/LinkIcon.h>
 
+#if PLATFORM(WPE) && ENABLE(2022_GLIB_API)
+#include <wtf/glib/GRefPtr.h>
+namespace WTF {
+WTF_DEFINE_GREF_TRAITS_INLINE(WebKitFavicon, webkit_favicon_ref, webkit_favicon_unref)
+}
+#endif
+
 WebKitFaviconDatabase* webkitFaviconDatabaseCreate();
 void webkitFaviconDatabaseOpen(WebKitFaviconDatabase*, const String& path, bool isEphemeral);
 void webkitFaviconDatabaseClose(WebKitFaviconDatabase*);
-#if PLATFORM(GTK)
+#if PLATFORM(GTK) || (PLATFORM(WPE) && ENABLE(2022_GLIB_API))
 void webkitFaviconDatabaseGetLoadDecisionForIcon(WebKitFaviconDatabase*, const WebCore::LinkIcon&, const String&, bool isEphemeral, Function<void(bool)>&&);
 void webkitFaviconDatabaseSetIconForPageURL(WebKitFaviconDatabase*, const WebCore::LinkIcon&, API::Data&, const String&, bool isEphemeral);
 void webkitFaviconDatabaseGetFaviconInternal(WebKitFaviconDatabase*, const gchar* pageURI, bool isEphemeral, GCancellable*, GAsyncReadyCallback, gpointer);

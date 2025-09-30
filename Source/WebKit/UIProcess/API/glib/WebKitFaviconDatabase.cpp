@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012, 2017 Igalia S.L.
+ * Copyright (C) 2012, 2017, 2025 Igalia S.L.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -37,11 +37,123 @@
 #if PLATFORM(GTK)
 #include <WebCore/GdkCairoUtilities.h>
 #include <WebCore/GdkSkiaUtilities.h>
+#endif
+
+#if USE(CAIRO)
 #include <WebCore/RefPtrCairo.h>
+#else
+WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_BEGIN
+#include <skia/core/SkImage.h>
+#include <skia/core/SkPixmap.h>
+WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_END
 #endif
 
 using namespace WebKit;
 using namespace WebCore;
+
+#if PLATFORM(WPE) && ENABLE(2022_GLIB_API)
+
+struct _WebKitFavicon {
+#if USE(SKIA)
+    using ImageType = sk_sp<SkImage>;
+
+    inline unsigned width() const { return m_image->width(); }
+    inline unsigned height() const { return m_image->height(); }
+
+    GBytes* ensureBytes() const
+    {
+        if (m_bytes)
+            return m_bytes.get();
+
+        SkPixmap pixmap;
+        if (!m_image->peekPixels(&pixmap))
+            return nullptr;
+
+        m_bytes = adoptGRef(g_bytes_new_with_free_func(pixmap.addr(0, 0), pixmap.computeByteSize(), [](void *userData) {
+            static_cast<SkImage*>(userData)->unref();
+        }, SkRef(m_image.get())));
+
+        return m_bytes.get();
+    }
+
+    inline unsigned stride() const
+    {
+        SkPixmap pixmap;
+        return m_image->peekPixels(&pixmap) ? pixmap.rowBytes() : 0;
+    }
+#else
+    using ImageType = GRefPtr<cairo_surface_t>;
+
+    inline unsigned width() const { return cairo_image_surface_get_width(m_image.get()); }
+    inline unsigned height() const { return cairo_image_surface_get_height(m_image.get()); }
+    inline unsigned stride() const { return cairo_image_surface_get_stride(m_image.get()); }
+
+    GBytes* ensureBytes()
+    {
+        if (!m_bytes) {
+            m_bytes = adoptGRef(g_bytes_new_with_free_func(cairo_image_surface_get_data(m_image.get()), stride() * height(), [](void *userData) {
+                cairo_surface_destroy(static_cast<cairo_surface_t*>(userData));
+            }, cairo_surface_reference(m_image.get())));
+        }
+        return m_bytes.get();
+    }
+#endif
+
+    static _WebKitFavicon* create(ImageType&& image)
+    {
+        auto* favicon = static_cast<_WebKitFavicon*>(fastMalloc(sizeof(_WebKitFavicon)));
+        new (favicon) _WebKitFavicon(WTFMove(image));
+        return favicon;
+    }
+
+    int referenceCount { 1 };
+
+private:
+    explicit _WebKitFavicon(ImageType&& image)
+        : m_image(WTFMove(image))
+    {
+    }
+
+    ImageType m_image;
+    mutable GRefPtr<GBytes> m_bytes;
+};
+
+G_DEFINE_BOXED_TYPE(WebKitFavicon, webkit_favicon, webkit_favicon_ref, webkit_favicon_unref)
+
+WebKitFavicon* webkit_favicon_ref(WebKitFavicon* favicon)
+{
+    g_atomic_int_inc(&favicon->referenceCount);
+    return favicon;
+}
+
+void webkit_favicon_unref(WebKitFavicon* favicon)
+{
+    if (g_atomic_int_dec_and_test(&favicon->referenceCount)) {
+        favicon->~WebKitFavicon();
+        fastFree(favicon);
+    }
+}
+
+guint webkit_favicon_get_width(WebKitFavicon* favicon)
+{
+    return favicon->width();
+}
+
+guint webkit_favicon_get_height(WebKitFavicon* favicon)
+{
+    return favicon->height();
+}
+
+guint webkit_favicon_get_stride(WebKitFavicon* favicon)
+{
+    return favicon->stride();
+}
+
+GBytes* webkit_favicon_get_bytes(WebKitFavicon* favicon)
+{
+    return favicon->ensureBytes();
+}
+#endif
 
 /**
  * WebKitFaviconDatabase:
@@ -122,7 +234,7 @@ void webkitFaviconDatabaseClose(WebKitFaviconDatabase* database)
     database->priv->iconDatabase = nullptr;
 }
 
-#if PLATFORM(GTK)
+#if PLATFORM(GTK) || (PLATFORM(WPE) && ENABLE(2022_GLIB_API))
 void webkitFaviconDatabaseGetLoadDecisionForIcon(WebKitFaviconDatabase* database, const LinkIcon& icon, const String& pageURL, bool isEphemeral, Function<void(bool)>&& completionHandler)
 {
     if (!webkitFaviconDatabaseIsOpen(database)) {
@@ -172,7 +284,7 @@ GQuark webkit_favicon_database_error_quark(void)
     return g_quark_from_static_string("WebKitFaviconDatabaseError");
 }
 
-#if PLATFORM(GTK)
+#if PLATFORM(GTK) || (PLATFORM(WPE) && ENABLE(2022_GLIB_API))
 void webkitFaviconDatabaseGetFaviconInternal(WebKitFaviconDatabase* database, const gchar* pageURI, bool isEphemeral, GCancellable* cancellable, GAsyncReadyCallback callback, gpointer userData)
 {
     if (!webkitFaviconDatabaseIsOpen(database)) {
@@ -207,6 +319,7 @@ void webkitFaviconDatabaseGetFaviconInternal(WebKitFaviconDatabase* database, co
 #endif
         });
 }
+#endif
 
 /**
  * webkit_favicon_database_get_favicon:
@@ -245,6 +358,7 @@ void webkit_favicon_database_get_favicon(WebKitFaviconDatabase* database, const 
  *
  * Returns: (transfer full): a new favicon image, or %NULL in case of error.
  */
+#if PLATFORM(GTK)
 #if USE(GTK4)
 GdkTexture* webkit_favicon_database_get_favicon_finish(WebKitFaviconDatabase* database, GAsyncResult* result, GError** error)
 #else
@@ -277,6 +391,27 @@ cairo_surface_t* webkit_favicon_database_get_favicon_finish(WebKitFaviconDatabas
     return static_cast<cairo_surface_t*>(g_task_propagate_pointer(G_TASK(result), error));
 #endif
 #endif
+}
+#endif
+
+#if PLATFORM(WPE) && ENABLE(2022_GLIB_API)
+WebKitFavicon* webkit_favicon_database_get_favicon_finish(WebKitFaviconDatabase* database, GAsyncResult* result, GError** error)
+{
+    g_return_val_if_fail(WEBKIT_IS_FAVICON_DATABASE(database), nullptr);
+    g_return_val_if_fail(g_task_is_valid(result, database), nullptr);
+
+#if USE(SKIA)
+    auto image = sk_sp<SkImage>(static_cast<SkImage*>(g_task_propagate_pointer(G_TASK(result), error)));
+#else
+    auto image = adoptGRef(static_cast<cairo_surface_t*>(g_task_propagate_pointer(G_TASK(result), error)));
+#endif
+
+    if (image)
+        return WebKitFavicon::create(WTFMove(image));
+
+    if (error && !*error)
+        g_set_error_literal(error, WEBKIT_FAVICON_DATABASE_ERROR, WEBKIT_FAVICON_DATABASE_ERROR_FAVICON_UNKNOWN, _("Failed to create image"));
+    return nullptr;
 }
 #endif
 

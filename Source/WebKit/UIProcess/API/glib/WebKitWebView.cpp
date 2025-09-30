@@ -95,7 +95,6 @@
 #include <wtf/text/StringBuilder.h>
 
 #if PLATFORM(GTK)
-#include "WebKitFaviconDatabasePrivate.h"
 #include "WebKitInputMethodContextImplGtk.h"
 #include "WebKitPointerLockPermissionRequest.h"
 #include "WebKitPrintOperationPrivate.h"
@@ -124,6 +123,10 @@
 #include "WebKitNetworkSessionPrivate.h"
 #else
 #include "WebKitJavascriptResultPrivate.h"
+#endif
+
+#if PLATFORM(GTK) || (PLATFORM(WPE) && ENABLE(2022_GLIB_API))
+#include "WebKitFaviconDatabasePrivate.h"
 #endif
 
 using namespace WebKit;
@@ -220,7 +223,7 @@ enum {
     PROP_TITLE,
     PROP_ESTIMATED_LOAD_PROGRESS,
 
-#if PLATFORM(GTK)
+#if PLATFORM(GTK) || (PLATFORM(WPE) && ENABLE(2022_GLIB_API))
     PROP_FAVICON,
 #endif
 
@@ -404,8 +407,12 @@ struct _WebKitWebViewPrivate {
 #endif
 
     GRefPtr<WebKitWebInspector> inspector;
+#endif
 
-#if USE(GTK4)
+#if PLATFORM(GTK) || (PLATFORM(WPE) && ENABLE(2022_GLIB_API))
+#if PLATFORM(WPE)
+    GRefPtr<WebKitFavicon> favicon;
+#elif USE(GTK4)
     GRefPtr<GdkTexture> favicon;
 #else
     RefPtr<cairo_surface_t> favicon;
@@ -681,8 +688,12 @@ static void enableBackForwardNavigationGesturesChanged(WebKitSettings* settings,
     gboolean enable = webkit_settings_get_enable_back_forward_navigation_gestures(settings);
     webkitWebViewBaseSetEnableBackForwardNavigationGesture(WEBKIT_WEB_VIEW_BASE(webView), enable);
 }
+#endif
 
-#if USE(GTK4)
+#if PLATFORM(GTK) || (PLATFORM(WPE) && ENABLE(2022_GLIB_API))
+#if PLATFORM(WPE)
+static void webkitWebViewUpdateFavicon(WebKitWebView* webView, WebKitFavicon* favicon)
+#elif USE(GTK4)
 static void webkitWebViewUpdateFavicon(WebKitWebView* webView, GdkTexture* favicon)
 #else
 static void webkitWebViewUpdateFavicon(WebKitWebView* webView, cairo_surface_t* favicon)
@@ -708,7 +719,9 @@ static void webkitWebViewCancelFaviconRequest(WebKitWebView* webView)
 static void gotFaviconCallback(GObject* object, GAsyncResult* result, gpointer userData)
 {
     GUniqueOutPtr<GError> error;
-#if USE(GTK4)
+#if PLATFORM(WPE)
+    GRefPtr<WebKitFavicon> favicon = adoptGRef(webkit_favicon_database_get_favicon_finish(WEBKIT_FAVICON_DATABASE(object), result, &error.outPtr()));
+#elif USE(GTK4)
     GRefPtr<GdkTexture> favicon = adoptGRef(webkit_favicon_database_get_favicon_finish(WEBKIT_FAVICON_DATABASE(object), result, &error.outPtr()));
 #else
     RefPtr<cairo_surface_t> favicon = adoptRef(webkit_favicon_database_get_favicon_finish(WEBKIT_FAVICON_DATABASE(object), result, &error.outPtr()));
@@ -759,7 +772,7 @@ static void faviconChangedCallback(WebKitFaviconDatabase*, const char* pageURI, 
 
     webkitWebViewUpdateFaviconURI(webView, faviconURI);
 }
-#endif
+#endif // PLATFORM(GTK) || (PLATFORM(WPE) && ENABLE(2022_GLIB_API))
 
 static bool webkitWebViewIsConstructed(WebKitWebView* webView)
 {
@@ -808,7 +821,7 @@ static void webkitWebViewDisconnectSettingsSignalHandlers(WebKitWebView* webView
 #endif
 }
 
-#if PLATFORM(GTK)
+#if PLATFORM(GTK) || (PLATFORM(WPE) && ENABLE(2022_GLIB_API))
 static void webkitWebViewWatchForChangesInFavicon(WebKitWebView* webView)
 {
     WebKitWebViewPrivate* priv = webView->priv;
@@ -977,9 +990,11 @@ static void webkitWebViewConstructed(GObject* object)
 #endif // ENABLE(CONTEXT_MENUS)
     attachFormClientToView(webView);
 
-#if PLATFORM(GTK)
+#if PLATFORM(GTK) || (PLATFORM(WPE) && ENABLE(2022_GLIB_API))
     attachIconLoadingClientToView(webView);
+#endif
 
+#if PLATFORM(GTK)
     GRefPtr<WebKitInputMethodContext> imContext = adoptGRef(webkitInputMethodContextImplGtkNew());
     webkitInputMethodContextSetWebView(imContext.get(), webView);
     webkitWebViewBaseSetInputMethodContext(WEBKIT_WEB_VIEW_BASE(webView), imContext.get());
@@ -1128,9 +1143,11 @@ static void webkitWebViewGetProperty(GObject* object, guint propId, GValue* valu
     case PROP_ESTIMATED_LOAD_PROGRESS:
         g_value_set_double(value, webkit_web_view_get_estimated_load_progress(webView));
         break;
-#if PLATFORM(GTK)
+#if PLATFORM(GTK) || (PLATFORM(WPE) && ENABLE(2022_GLIB_API))
     case PROP_FAVICON:
-#if USE(GTK4)
+#if PLATFORM(WPE)
+        g_value_set_boxed(value, webkit_web_view_get_favicon(webView));
+#elif USE(GTK4)
         g_value_set_object(value, webkit_web_view_get_favicon(webView));
 #else
         g_value_set_pointer(value, webkit_web_view_get_favicon(webView));
@@ -1214,7 +1231,7 @@ static void webkitWebViewDispose(GObject* object)
 {
     WebKitWebView* webView = WEBKIT_WEB_VIEW(object);
 
-#if PLATFORM(GTK)
+#if PLATFORM(GTK) || (PLATFORM(WPE) && ENABLE(2022_GLIB_API))
     webkitWebViewCancelFaviconRequest(webView);
     webView->priv->faviconChangedHandlerID = 0;
 #endif
@@ -1402,7 +1419,7 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
             0.0, 1.0, 0.0,
             WEBKIT_PARAM_READABLE);
 
-#if PLATFORM(GTK)
+#if PLATFORM(GTK) || (PLATFORM(WPE) && ENABLE(2022_GLIB_API))
     /**
      * WebKitWebView:favicon:
      *
@@ -1410,7 +1427,13 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      * See webkit_web_view_get_favicon() for more details.
      */
     sObjProperties[PROP_FAVICON] =
-#if USE(GTK4)
+#if PLATFORM(WPE)
+        g_param_spec_boxed(
+            "favicon",
+            nullptr, nullptr,
+            WEBKIT_TYPE_FAVICON,
+            WEBKIT_PARAM_READABLE);
+#elif USE(GTK4)
         g_param_spec_object(
             "favicon",
             nullptr, nullptr,
@@ -2643,7 +2666,7 @@ void webkitWebViewLoadChanged(WebKitWebView* webView, WebKitLoadEvent loadEvent)
     WebKitWebViewPrivate* priv = webView->priv;
     switch (loadEvent) {
     case WEBKIT_LOAD_STARTED:
-#if PLATFORM(GTK)
+#if PLATFORM(GTK) || (PLATFORM(WPE) && ENABLE(2022_GLIB_API))
         webkitWebViewCancelFaviconRequest(webView);
         webkitWebViewWatchForChangesInFavicon(webView);
 #endif
@@ -2660,7 +2683,7 @@ void webkitWebViewLoadChanged(WebKitWebView* webView, WebKitLoadEvent loadEvent)
             priv->activeURI = activeURL;
             g_object_notify_by_pspec(G_OBJECT(webView), sObjProperties[PROP_URI]);
         }
-#if PLATFORM(GTK)
+#if PLATFORM(GTK) || (PLATFORM(WPE) && ENABLE(2022_GLIB_API))
         if (auto* database = webkitWebViewGetFaviconDatabase(webView)) {
             GUniquePtr<char> faviconURI(webkit_favicon_database_get_favicon_uri(database, priv->activeURI.data()));
             webkitWebViewUpdateFaviconURI(webView, faviconURI.get());
@@ -2707,7 +2730,7 @@ void webkitWebViewLoadFailedWithTLSErrors(WebKitWebView* webView, const char* fa
     g_signal_emit(webView, signals[LOAD_CHANGED], 0, WEBKIT_LOAD_FINISHED);
 }
 
-#if PLATFORM(GTK)
+#if PLATFORM(GTK) || (PLATFORM(WPE) && ENABLE(2022_GLIB_API))
 void webkitWebViewGetLoadDecisionForIcon(WebKitWebView* webView, const LinkIcon& icon, Function<void(bool)>&& completionHandler)
 {
     // We only support favicons for now.
@@ -2733,7 +2756,7 @@ void webkitWebViewSetIcon(WebKitWebView* webView, const LinkIcon& icon, API::Dat
 
     webkitFaviconDatabaseSetIconForPageURL(database, icon, iconData, getPage(webView).pageLoadState().activeURL(), webkitWebViewIsEphemeral(webView));
 }
-#endif
+#endif // PLATFORM(GTK) || (PLATFORM(WPE) && ENABLE(2022_GLIB_API))
 
 RefPtr<WebPageProxy> webkitWebViewCreateNewPage(WebKitWebView* webView, Ref<API::PageConfiguration>&& configuration, WebKitNavigationAction* navigationAction)
 {
@@ -3847,7 +3870,7 @@ const gchar* webkit_web_view_get_uri(WebKitWebView* webView)
     return webView->priv->activeURI.data();
 }
 
-#if PLATFORM(GTK)
+#if PLATFORM(GTK) || (PLATFORM(WPE) && ENABLE(2022_GLIB_API))
 /**
  * webkit_web_view_get_favicon:
  * @web_view: a #WebKitWebView
@@ -3861,7 +3884,9 @@ const gchar* webkit_web_view_get_uri(WebKitWebView* webView)
  * Returns: (transfer none): the favicon image or %NULL if there's no
  *    icon associated with @web_view.
  */
-#if USE(GTK4)
+#if PLATFORM(WPE)
+WebKitFavicon* webkit_web_view_get_favicon(WebKitWebView* webView)
+#elif USE(GTK4)
 GdkTexture* webkit_web_view_get_favicon(WebKitWebView* webView)
 #else
 cairo_surface_t* webkit_web_view_get_favicon(WebKitWebView* webView)

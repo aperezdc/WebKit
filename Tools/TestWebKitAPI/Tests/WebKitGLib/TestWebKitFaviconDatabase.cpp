@@ -19,8 +19,6 @@
 
 #include "config.h"
 
-#if PLATFORM(GTK)
-
 #include "WebKitTestServer.h"
 #include "WebViewTest.h"
 #include <WebCore/SoupVersioning.h>
@@ -53,7 +51,9 @@ public:
 
     ~FaviconDatabaseTest()
     {
-#if !USE(GTK4)
+#if PLATFORM(WPE)
+        g_clear_pointer(&m_favicon, webkit_favicon_unref);
+#elif !USE(GTK4)
         if (m_favicon)
             cairo_surface_destroy(m_favicon);
 #endif
@@ -113,7 +113,11 @@ public:
     {
         g_assert_true(test->webView() == webView);
         test->m_faviconNotificationReceived = true;
-#if USE(GTK4)
+#if PLATFORM(WPE)
+        test->m_favicon = webkit_web_view_get_favicon(webView);
+        if (test->m_favicon)
+            webkit_favicon_ref(test->m_favicon);
+#elif USE(GTK4)
         test->m_favicon = webkit_web_view_get_favicon(webView);
 #else
         test->m_favicon = cairo_surface_reference(webkit_web_view_get_favicon(webView));
@@ -136,7 +140,7 @@ public:
     static void getFaviconCallback(GObject* sourceObject, GAsyncResult* result, void* data)
     {
         FaviconDatabaseTest* test = static_cast<FaviconDatabaseTest*>(data);
-#if USE(GTK4)
+#if PLATFORM(GTK) && USE(GTK4)
         test->m_favicon = adoptGRef(webkit_favicon_database_get_favicon_finish(test->m_database.get(), result, &test->m_error.outPtr()));
 #else
         test->m_favicon = webkit_favicon_database_get_favicon_finish(test->m_database.get(), result, &test->m_error.outPtr());
@@ -154,7 +158,9 @@ public:
 
     void waitUntilLoadFinishedAndFaviconChanged()
     {
-#if !USE(GTK4)
+#if PLATFORM(WPE)
+        g_clear_pointer(&m_favicon, webkit_favicon_unref);
+#elif !USE(GTK4)
         if (m_favicon)
             cairo_surface_destroy(m_favicon);
 #endif
@@ -170,7 +176,9 @@ public:
 
     void getFaviconForPageURIAndWaitUntilReady(const char* pageURI)
     {
-#if !USE(GTK4)
+#if PLATFORM(WPE)
+        g_clear_pointer(&m_favicon, webkit_favicon_unref);
+#elif !USE(GTK4)
         if (m_favicon)
             cairo_surface_destroy(m_favicon);
 #endif
@@ -190,7 +198,9 @@ public:
     }
 
     GRefPtr<WebKitFaviconDatabase> m_database;
-#if USE(GTK4)
+#if PLATFORM(WPE)
+    WebKitFavicon* m_favicon;
+#elif USE(GTK4)
     GRefPtr<GdkTexture> m_favicon;
 #else
     cairo_surface_t* m_favicon { nullptr };
@@ -275,7 +285,10 @@ static void testFaviconDatabaseGetFavicon(FaviconDatabaseTest* test, gconstpoint
 
     test->getFaviconForPageURIAndWaitUntilReady(kServer->getURIForPath("/foo").data());
     g_assert_nonnull(test->m_favicon);
-#if USE(GTK4)
+#if PLATFORM(WPE)
+    g_assert_cmpint(webkit_favicon_get_width(test->m_favicon), ==, 16);
+    g_assert_cmpint(webkit_favicon_get_height(test->m_favicon), ==, 16);
+#elif USE(GTK4)
     g_assert_cmpint(gdk_texture_get_width(test->m_favicon.get()), ==, 16);
     g_assert_cmpint(gdk_texture_get_height(test->m_favicon.get()), ==, 16);
 #else
@@ -285,7 +298,7 @@ static void testFaviconDatabaseGetFavicon(FaviconDatabaseTest* test, gconstpoint
     g_assert_cmpstr(test->m_faviconURI.data(), ==, faviconURI.data());
     g_assert_no_error(test->m_error.get());
 
-#if !USE(GTK4)
+#if PLATFORM(GTK) && !USE(GTK4)
     // Check that another page with the same favicon returns the same icon.
     cairo_surface_t* favicon = cairo_surface_reference(test->m_favicon);
     test->loadURI(kServer->getURIForPath("/bar").data());
@@ -421,5 +434,3 @@ void afterAll()
 {
     delete kServer;
 }
-
-#endif

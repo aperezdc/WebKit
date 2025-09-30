@@ -20,6 +20,8 @@
 #include "config.h"
 #include "WebKitIconLoadingClient.h"
 
+#if PLATFORM(GTK) || (PLATFORM(WPE) && ENABLE(2022_GLIB_API))
+
 #include "APIIconLoadingClient.h"
 #include "WebKitWebViewPrivate.h"
 #include <wtf/TZoneMallocInlines.h>
@@ -66,3 +68,5 @@ void attachIconLoadingClientToView(WebKitWebView* webView)
 {
     webkitWebViewGetPage(webView).setIconLoadingClient(makeUnique<IconLoadingClient>(webView));
 }
+
+#endif // PLATFORM(GTK) || (PLATFORM(WPE) && ENABLE(2022_GLIB_API))
