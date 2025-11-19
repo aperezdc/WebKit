@@ -1914,8 +1914,11 @@ void WebLocalFrameLoaderClient::getLoadDecisionForIcons(const Vector<std::pair<W
     if (!webPage)
         return;
 
+    HashMap<CallbackID, WebCore::LinkIcon> callbackIdIconMap;
     for (auto& icon : icons)
-        webPage->send(Messages::WebPageProxy::GetLoadDecisionForIcon(icon.first, CallbackID::fromInteger(icon.second)));
+        callbackIdIconMap.add(CallbackID::fromInteger(icon.second), icon.first);
+
+    webPage->send(Messages::WebPageProxy::GetLoadDecisionForIcons(WTFMove(callbackIdIconMap)));
 }
 
 void WebLocalFrameLoaderClient::didFinishServiceWorkerPageRegistration(bool success)

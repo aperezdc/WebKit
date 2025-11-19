@@ -22,6 +22,7 @@
 
 #include "IconDatabase.h"
 #include "WebKitFaviconDatabasePrivate.h"
+#include "WebKitImagePrivate.h"
 #include <WebCore/Image.h>
 #include <WebCore/IntSize.h>
 #include <WebCore/NotImplemented.h>
@@ -37,6 +38,12 @@
 #if PLATFORM(GTK)
 #include "GtkUtilities.h"
 #include <WebCore/RefPtrCairo.h>
+#endif
+
+#if ENABLE(2022_GLIB_API) && USE(SKIA)
+WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_BEGIN
+#include <skia/core/SkPixmap.h>
+WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_END
 #endif
 
 using namespace WebKit;
@@ -278,6 +285,74 @@ cairo_surface_t* webkit_favicon_database_get_favicon_finish(WebKitFaviconDatabas
 #endif
 #endif
 }
+
+#if ENABLE(2022_GLIB_API)
+/**
+ * webkit_favicon_database_get_page_icons:
+ *
+ * Since: 2.52
+ */
+void webkit_favicon_database_get_page_icons(WebKitFaviconDatabase* database, const gchar* pageURI, GCancellable* cancellable, GAsyncReadyCallback callback, gpointer userData)
+{
+    g_return_if_fail(WEBKIT_IS_FAVICON_DATABASE(database));
+    g_return_if_fail(pageURI);
+
+    if (!webkitFaviconDatabaseIsOpen(database))
+        return g_task_report_new_error(database, callback, userData, 0, WEBKIT_FAVICON_DATABASE_ERROR, WEBKIT_FAVICON_DATABASE_ERROR_NOT_INITIALIZED, _("Favicons database not initialized yet"));
+
+    const auto uriString = String::fromUTF8(pageURI);
+    if (uriString.startsWith("about:"_s))
+        return g_task_report_new_error(database, callback, userData, 0, WEBKIT_FAVICON_DATABASE_ERROR, WEBKIT_FAVICON_DATABASE_ERROR_FAVICON_NOT_FOUND, _("Page %s does not have a favicon"), pageURI);
+
+    auto task = adoptGRef(g_task_new(database, cancellable, callback, userData));
+    database->priv->iconDatabase->loadIconsForPageURL(uriString, IconDatabase::AllowDatabaseWrite::No, [task = WTFMove(task)](Vector<PlatformImagePtr>&& icons) {
+        Vector<GRefPtr<WebKitImage>> images(icons.size(), [&icons](size_t index) {
+            // TODO: Handle errors, convert to BGRA32 if needed.
+            auto image = WTFMove(icons[index]);
+#if USE(CAIRO)
+            int width = cairo_surface_get_width(image.get());
+            int height = cairo_surface_get_height(image.get());
+            unsigned stride = cairo_surface_get_stride(image.get());
+            auto sizeInBytes = checkedProduct<size_t>(height, stride);
+            RELEASE_ASSERT(!sizeInBytes.hasOverflowed());
+            auto bytes = adoptGRef(g_bytes_new_with_free_func(cairo_surface_get_data(image.get()), sizeInBytes.value(), [](void* data) {
+                cairo_surface_destroy(static_cast<cairo_surface_t*>(data));
+            }, image.leakRef()));
+#elif USE(SKIA)
+            SkPixmap pixmap;
+            RELEASE_ASSERT(image->peekPixels(&pixmap));
+            int width = pixmap.width();
+            int height = pixmap.height();
+            unsigned stride = pixmap.rowBytes();
+            auto bytes = adoptGRef(g_bytes_new_with_free_func(pixmap.addr32(), pixmap.computeByteSize(), [](void* data) {
+                static_cast<SkImage*>(data)->unref();
+            }, image.release()));
+#else
+#error Only Cairo or Skia are supported
+#endif
+            return adoptGRef(webkitImageNew(width, height, stride, WTFMove(bytes)));
+        });
+
+        g_task_return_pointer(task.get(), webkitImageListCreate(WTFMove(images)), [](void* data) {
+            webkit_image_list_unref(static_cast<WebKitImageList*>(data));
+        });
+    });
+}
+
+/**
+ * webkit_favicon_database_get_page_icons_finish:
+ *
+ * Returns: (transfer full):
+ *
+ * Since: 2.52
+ */
+WebKitImageList* webkit_favicon_database_get_page_icons_finish(WebKitFaviconDatabase* database, GAsyncResult* result, GError** error)
+{
+    g_return_val_if_fail(WEBKIT_IS_FAVICON_DATABASE(database), nullptr);
+
+    return static_cast<WebKitImageList*>(g_task_propagate_pointer(G_TASK(result), error));
+}
+#endif
 #endif
 
 /**

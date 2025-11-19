@@ -601,6 +601,12 @@ webkit_web_view_get_favicon                          (WebKitWebView             
 WEBKIT_API cairo_surface_t *
 webkit_web_view_get_favicon                          (WebKitWebView             *web_view);
 #endif
+
+#if ENABLE(2022_GLIB_API)
+WEBKIT_API WebKitImageList *
+webkit_web_view_get_page_icons                       (WebKitWebView             *web_view);
+#endif
+
 #endif
 
 WEBKIT_API const gchar *

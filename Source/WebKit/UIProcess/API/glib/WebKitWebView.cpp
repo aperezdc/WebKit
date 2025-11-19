@@ -110,9 +110,6 @@
 #include "WPEUtilities.h"
 #include "WPEWebViewLegacy.h"
 #include "WPEWebViewPlatform.h"
-#if ENABLE(2022_GLIB_API)
-#include "WebKitImagePrivate.h"
-#endif
 #include "WebKitOptionMenuPrivate.h"
 #include "WebKitWebViewBackendPrivate.h"
 #include "WebKitWebViewClient.h"
@@ -123,6 +120,7 @@
 #endif
 
 #if ENABLE(2022_GLIB_API)
+#include "WebKitImagePrivate.h"
 #include "WebKitNetworkSessionPrivate.h"
 #else
 #include "WebKitJavascriptResultPrivate.h"
@@ -250,6 +248,10 @@ enum {
 
     PROP_THEME_COLOR,
     PROP_IS_IMMERSIVE_MODE_ENABLED,
+
+#if PLATFORM(GTK) && ENABLE(2022_GLIB_API)
+    PROP_PAGE_ICONS,
+#endif
 
     N_PROPERTIES,
 };
@@ -416,6 +418,9 @@ struct _WebKitWebViewPrivate {
 
     CString faviconURI;
     unsigned long faviconChangedHandlerID;
+#if ENABLE(2022_GLIB_API)
+    GRefPtr<WebKitImageList> pageIcons;
+#endif
 #endif
 
     GRefPtr<WebKitAuthenticationRequest> authenticationRequest;
@@ -761,7 +766,19 @@ static void faviconChangedCallback(WebKitFaviconDatabase*, const char* pageURI, 
 
     webkitWebViewUpdateFaviconURI(webView, faviconURI);
 }
+
+#if ENABLE(2022_GLIB_API)
+static void webkitWebViewUpdatePageIcons(WebKitWebView* webView, GRefPtr<WebKitImageList>&& pageIcons)
+{
+    if (pageIcons == webView->priv->pageIcons)
+        return;
+
+    WTF_ALWAYS_LOG("Emit: WebKitWebView:notify::page-icons");
+    webView->priv->pageIcons = pageIcons;
+    g_object_notify_by_pspec(G_OBJECT(webView), sObjProperties[PROP_PAGE_ICONS]);
+}
 #endif
+#endif // PLATFORM(GTK)
 
 static bool webkitWebViewIsConstructed(WebKitWebView* webView)
 {
@@ -1207,6 +1224,11 @@ static void webkitWebViewGetProperty(GObject* object, guint propId, GValue* valu
     case PROP_IS_IMMERSIVE_MODE_ENABLED:
         g_value_set_boolean(value, webkit_web_view_is_immersive_mode_enabled(webView));
         break;
+#if PLATFORM(GTK) && ENABLE(2022_GLIB_API)
+    case PROP_PAGE_ICONS:
+        g_value_set_object(value, webkit_web_view_get_page_icons(webView));
+        break;
+#endif
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, propId, paramSpec);
     }
@@ -1424,7 +1446,20 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
             nullptr, nullptr,
             WEBKIT_PARAM_READABLE);
 #endif
+
+#if ENABLE(2022_GLIB_API)
+    /**
+     * WebKitWebView:page-icons: (attributes org.gtk.Property.get=webkit_web_view_get_page_icons) (getter get_page_icons):
+     *
+     * Since: 2.52
+     */
+    sObjProperties[PROP_PAGE_ICONS] = g_param_spec_boxed(
+        "page-icons",
+        nullptr, nullptr,
+        WEBKIT_TYPE_IMAGE_LIST,
+        WEBKIT_PARAM_READABLE);
 #endif
+#endif // PLATFORM(GTK)
 
     /**
      * WebKitWebView:uri:
@@ -2710,21 +2745,68 @@ void webkitWebViewLoadFailedWithTLSErrors(WebKitWebView* webView, const char* fa
 }
 
 #if PLATFORM(GTK)
-void webkitWebViewGetLoadDecisionForIcon(WebKitWebView* webView, const LinkIcon& icon, Function<void(bool)>&& completionHandler)
+void webkitWebViewGetLoadDecisionForIcons(WebKitWebView* webView, const HashMap<CallbackID, WebCore::LinkIcon>& icons, CompletionHandler<void(HashSet<WebKit::CallbackID>&&)>&& completionHandler)
 {
-    // We only support favicons for now.
-    if (icon.type != LinkIconType::Favicon) {
-        completionHandler(false);
-        return;
-    }
+    WTF_ALWAYS_LOG("webView: numIcons=" << icons.size());
+
+    struct CallbackAggregator final : public ThreadSafeRefCounted<CallbackAggregator>  {
+        explicit CallbackAggregator(CompletionHandler<void(HashSet<WebKit::CallbackID>&&)>&& completionHandler)
+            : m_completionHandler(WTFMove(completionHandler))
+        {
+        }
+
+        ~CallbackAggregator()
+        {
+            WTF_ALWAYS_LOG("aggregator: nIdents=" << loadIdentifiers.size());
+            m_completionHandler(WTFMove(loadIdentifiers));
+        }
+
+        CompletionHandler<void(HashSet<WebKit::CallbackID>)> m_completionHandler;
+        HashSet<CallbackID> loadIdentifiers { };
+    };
+
+    auto aggregator = adoptRef(new CallbackAggregator(WTFMove(completionHandler)));
 
     auto* database = webkitWebViewGetFaviconDatabase(webView);
-    if (!database) {
-        completionHandler(false);
+    if (!database)
         return;
-    }
 
-    webkitFaviconDatabaseGetLoadDecisionForIcon(database, icon, getPage(webView).pageLoadState().activeURL(), webkitWebViewIsEphemeral(webView), WTFMove(completionHandler));
+    const auto isEphemeral = webkitWebViewIsEphemeral(webView);
+    const auto& activeURL = getPage(webView).pageLoadState().activeURL();
+    for (const auto& [identifier, icon] : icons) {
+        // FIXME: Maybe we should consider other icon types as loadable.
+        if (!icon.url.protocolIsInHTTPFamily() || icon.type != LinkIconType::Favicon)
+            continue;
+
+        WTF_ALWAYS_LOG("deciding icon=" << identifier.toInteger() << " / " << icon.url);
+        webkitFaviconDatabaseGetLoadDecisionForIcon(database, icon, activeURL, isEphemeral, [aggregator, identifier](bool loadIcon) {
+            WTF_ALWAYS_LOG("decided icon=" << identifier.toInteger() << " load=" << loadIcon);
+            if (loadIcon)
+                aggregator->loadIdentifiers.add(identifier);
+        });
+    }
+}
+
+void webkitWebViewUpdatePageIcons(WebKitWebView *webView)
+{
+    auto* database = webkitWebViewGetFaviconDatabase(webView);
+    if (!database)
+        return;
+
+    // TODO: Use a weakref to the web view?
+    auto cancellable = adoptGRef(g_cancellable_new());
+    webkit_favicon_database_get_page_icons(database, getPage(webView).pageLoadState().activeURL().utf8().data(), cancellable.get(), [](GObject* database, GAsyncResult* result, gpointer userData) {
+        GUniqueOutPtr<GError> error;
+        auto pageIcons = adoptGRef(webkit_favicon_database_get_page_icons_finish(WEBKIT_FAVICON_DATABASE(database), result, &error.outPtr()));
+        if (!pageIcons) {
+            if (!g_error_matches(error.get(), G_IO_ERROR, G_IO_ERROR_CANCELLED))
+                LOG_ERROR("Could not get page icons: %s", error->message);
+            return;
+        }
+
+        auto webView = adoptGRef(WEBKIT_WEB_VIEW(userData));
+        webkitWebViewUpdatePageIcons(webView.get(), WTFMove(pageIcons));
+    }, g_object_ref(webView));
 }
 
 void webkitWebViewSetIcon(WebKitWebView* webView, const LinkIcon& icon, API::Data& iconData)
@@ -5950,3 +6032,19 @@ void webkit_web_view_leave_immersive_mode(WebKitWebView* webView)
         xrSystem->invalidate(PlatformXRSystem::InvalidationReason::Client);
 #endif
 }
+
+#if PLATFORM(GTK) && ENABLE(2022_GLIB_API)
+/**
+ * webkit_web_view_get_page_icons: (get-property page-icons):
+ * @web_view: a #WebKitWebView
+ *
+ * Returns: (transfer none) (nullable): The current page icons.
+ *
+ * Since: 2.52
+ */
+WebKitImageList* webkit_web_view_get_page_icons(WebKitWebView* webView)
+{
+    g_return_val_if_fail(WEBKIT_IS_WEB_VIEW(webView), nullptr);
+    return webView->priv->pageIcons.get();
+}
+#endif

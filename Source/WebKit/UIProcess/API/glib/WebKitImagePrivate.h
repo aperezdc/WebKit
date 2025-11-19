@@ -25,3 +25,4 @@
 #include <wtf/glib/GRefPtr.h>
 
 WK_EXPORT WebKitImage* webkitImageNew(int width, int height, guint stride, GRefPtr<GBytes>&&);
+WebKitImageList* webkitImageListCreate(Vector<GRefPtr<WebKitImage>>&&);

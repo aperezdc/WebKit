@@ -438,4 +438,62 @@ static void webkit_image_gloadable_icon_interface_init(GLoadableIconIface* iface
     iface->load_finish = webkitImageLoadFinish;
 }
 
+/**
+ * WebKitImageList: (ref-func webkit_image_list_ref) (unref-func webkit_image_list_unref)
+ *
+ * Represents a set of related images.
+ *
+ * Since: 2.52
+ */
+
+struct _WebKitImageList {
+    Vector<GRefPtr<WebKitImage>> images;
+    int referenceCount { 1 };
+};
+
+G_DEFINE_BOXED_TYPE(WebKitImageList, webkit_image_list, webkit_image_list_ref, webkit_image_list_unref)
+
+WebKitImageList* webkitImageListCreate(Vector<GRefPtr<WebKitImage>>&& images)
+{
+    WebKitImageList* imageList = static_cast<WebKitImageList*>(fastMalloc(sizeof(WebKitImageList)));
+    new (imageList) WebKitImageList { WTFMove(images) };
+    return imageList;
+}
+
+WebKitImageList* webkit_image_list_ref(WebKitImageList *imageList)
+{
+    g_return_val_if_fail(imageList, nullptr);
+    g_atomic_int_inc(&imageList->referenceCount);
+    return imageList;
+}
+
+void webkit_image_list_unref(WebKitImageList *imageList)
+{
+    g_return_if_fail(imageList);
+    if (g_atomic_int_dec_and_test(&imageList->referenceCount)) {
+        imageList->~WebKitImageList();
+        fastFree(imageList);
+    }
+}
+
+gsize webkit_image_list_get_length(WebKitImageList *imageList)
+{
+    g_return_val_if_fail(imageList, 0);
+
+    return imageList->images.size();
+}
+
+/**
+ * webkit_image_list_get:
+ *
+ * Returns: (transfer none):
+ */
+WebKitImage* webkit_image_list_get(WebKitImageList *imageList, gsize index)
+{
+    g_return_val_if_fail(imageList, nullptr);
+    g_return_val_if_fail(index < imageList->images.size(), nullptr);
+
+    return imageList->images[index].get();
+}
+
 #endif // ENABLE(2022_GLIB_API)
