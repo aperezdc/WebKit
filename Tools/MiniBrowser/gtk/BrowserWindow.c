@@ -658,8 +658,11 @@ static void faviconChanged(WebKitWebView *webView, GParamSpec *paramSpec, Browse
 {
 #if GTK_CHECK_VERSION(3, 98, 0)
     GdkTexture *favicon = webkit_web_view_get_favicon(webView);
-    if (favicon)
+    if (favicon) {
         favicon = g_object_ref(favicon);
+        g_printerr("%s: got %dx%d icon\n", __func__, gdk_texture_get_width(favicon), gdk_texture_get_height(favicon));
+    } else
+        g_printerr("%s: no favicon\n", __func__);
 #else
     cairo_surface_t *surface = webkit_web_view_get_favicon(webView);
     GdkPixbuf *favicon = NULL;
@@ -677,6 +680,17 @@ static void faviconChanged(WebKitWebView *webView, GParamSpec *paramSpec, Browse
     window->favicon = favicon;
 
     updateUriEntryIcon(window);
+}
+
+static void pageIconsChanged(WebKitWebView *webView, GParamSpec *pspec, BrowserWindow *window)
+{
+    WebKitImageList *icons = webkit_web_view_get_page_icons(webView);
+    g_printerr("%s: %zu icons:", __func__, webkit_image_list_get_length(icons));
+    for (size_t i = 0; i < webkit_image_list_get_length(icons); i++) {
+        WebKitImage *image = webkit_image_list_get(icons, i);
+        g_printerr(" %dx%d", webkit_image_get_width(image), webkit_image_get_height(image));
+    }
+    g_printerr("\n");
 }
 
 static void webViewMediaCaptureStateChanged(WebKitWebView* webView, GParamSpec* paramSpec, BrowserWindow* window)
@@ -1298,6 +1312,7 @@ static void browserWindowSwitchTab(GtkNotebook *notebook, BrowserTab *tab, guint
     g_signal_connect(webView, "mouse-target-changed", G_CALLBACK(webViewMouseTargetChanged), window);
     g_signal_connect(webView, "notify::zoom-level", G_CALLBACK(webViewZoomLevelChanged), window);
     g_signal_connect(webView, "notify::favicon", G_CALLBACK(faviconChanged), window);
+    g_signal_connect(webView, "notify::page-icons", G_CALLBACK(pageIconsChanged), window);
     g_signal_connect(webView, "enter-fullscreen", G_CALLBACK(webViewEnterFullScreen), window);
     g_signal_connect(webView, "leave-fullscreen", G_CALLBACK(webViewLeaveFullScreen), window);
 #if !GTK_CHECK_VERSION(3, 98, 0)
