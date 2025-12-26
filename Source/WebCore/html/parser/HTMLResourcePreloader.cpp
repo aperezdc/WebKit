@@ -30,6 +30,7 @@
 #include "DefaultResourceLoadPriority.h"
 #include "DocumentResourceLoader.h"
 #include "DocumentView.h"
+#include "FrameDestructionObserverInlines.h"
 #include "MediaQueryEvaluator.h"
 #include "MediaQueryParser.h"
 #include "NodeRenderStyle.h"

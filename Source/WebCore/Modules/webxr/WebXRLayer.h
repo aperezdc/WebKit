@@ -31,6 +31,7 @@
 #include "EventTarget.h"
 #include "EventTargetInterfaces.h"
 #include "PlatformXR.h"
+#include "WebXRSession.h"
 #include <wtf/RefCounted.h>
 #include <wtf/TZoneMalloc.h>
 

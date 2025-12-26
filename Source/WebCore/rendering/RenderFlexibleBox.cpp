@@ -54,6 +54,7 @@
 #include "RenderStyle+GettersInlines.h"
 #include "RenderTable.h"
 #include "RenderView.h"
+#include "Settings.h"
 #include "StyleComputedStyle+InitialInlines.h"
 #include "StylePrimitiveNumericTypes+Evaluation.h"
 #include "WritingMode.h"

@@ -39,6 +39,7 @@
 #include "FrameDestructionObserverInlines.h"
 #include "GetHTMLOptions.h"
 #include "HTMLSlotElement.h"
+#include "LocalDOMWindow.h"
 #if ENABLE(PICTURE_IN_PICTURE_API)
 #include "NotImplemented.h"
 #endif

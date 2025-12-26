@@ -29,14 +29,18 @@
 
 #include "Chrome.h"
 #include "ChromeClient.h"
+#include "Document.h"
 #include "Element.h"
 #include "Event.h"
 #include "EventNames.h"
 #include "ExceptionCode.h"
+#include "FrameDestructionObserverInlines.h"
 #include "JSDOMPromiseDeferred.h"
+#include "NodeDocument.h"
 #include "Page.h"
 #include "PlatformMouseEvent.h"
 #include "PointerCaptureController.h"
+#include "TaskSource.h"
 #include "UserGestureIndicator.h"
 #include "VoidCallback.h"
 #include <wtf/Ref.h>

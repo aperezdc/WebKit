@@ -28,7 +28,7 @@
 
 #include "Element.h"
 #include "NodeRenderStyle.h"
-#include "RenderStyle.h"
+#include "RenderStyle+SettersInlines.h"
 #include "StyleUpdate.h"
 
 namespace WebCore {

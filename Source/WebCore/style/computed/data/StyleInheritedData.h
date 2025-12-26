@@ -33,6 +33,9 @@
 #include <wtf/RefCounted.h>
 
 namespace WebCore {
+
+struct FontData;
+
 namespace Style {
 
 class FontData;

@@ -26,6 +26,8 @@
 #include "config.h"
 #include "NativeImageSource.h"
 
+#include <wtf/text/TextStream.h>
+
 namespace WebCore {
 
 Ref<NativeImageSource> NativeImageSource::create(Ref<NativeImage>&& nativeImage)

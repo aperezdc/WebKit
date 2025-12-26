@@ -40,6 +40,7 @@
 #include "SVGRenderSupport.h"
 #include "SVGStringList.h"
 #include "SVGUnitTypes.h"
+#include "Settings.h"
 #include "StyleResolver.h"
 #include <wtf/NeverDestroyed.h>
 #include <wtf/TZoneMallocInlines.h>

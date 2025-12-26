@@ -23,6 +23,7 @@
 #include "config.h"
 #include "StyleBoxData.h"
 
+#include "RenderStyleProperties.h"
 #include "StyleComputedStyle+DifferenceLogging.h"
 #include "StyleComputedStyle+InitialInlines.h"
 #include "StylePrimitiveKeyword+Logging.h"

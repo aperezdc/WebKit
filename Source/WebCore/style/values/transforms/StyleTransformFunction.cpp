@@ -46,6 +46,7 @@
 #include "StyleMatrixTransformFunction.h"
 #include "StylePerspectiveTransformFunction.h"
 #include "StylePrimitiveNumericTypes+Blending.h"
+#include "StylePrimitiveNumericTypes+CSSValueConversion.h"
 #include "StylePrimitiveNumericTypes+CSSValueCreation.h"
 #include "StylePrimitiveNumericTypes+Serialization.h"
 #include "StyleRotateTransformFunction.h"

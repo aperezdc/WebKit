@@ -47,6 +47,7 @@
 #include "RenderLayer.h"
 #include "RenderObjectInlines.h"
 #include "RenderScrollbar.h"
+#include "RenderStyle+SettersInlines.h"
 #include "RenderTheme.h"
 #include "RenderView.h"
 #include "StyleResolver.h"

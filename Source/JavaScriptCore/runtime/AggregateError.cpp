@@ -26,6 +26,7 @@
 #include "config.h"
 #include "AggregateError.h"
 
+#include "ButterflyInlines.h"
 #include "CommonIdentifiers.h"
 #include "JSArray.h"
 

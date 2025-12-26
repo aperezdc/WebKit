@@ -28,6 +28,7 @@
 
 #include "JSDOMPromiseDeferred.h"
 #include "JSWebTransportSendStreamStats.h"
+#include "ScriptExecutionContextInlines.h"
 #include "WebTransportSendStreamStats.h"
 #include "WebTransportSession.h"
 #include "WebTransport.h"

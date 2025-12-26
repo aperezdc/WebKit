@@ -29,6 +29,7 @@
 #include "InlineContentAligner.h"
 #include "InlineFormattingContext.h"
 #include "InlineLine.h"
+#include "LayoutBoxInlines.h"
 #include "RenderStyle+GettersInlines.h"
 #include <ranges>
 

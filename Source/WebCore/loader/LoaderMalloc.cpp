@@ -27,6 +27,7 @@
 #include "LoaderMalloc.h"
 
 #include <wtf/NeverDestroyed.h>
+#include <wtf/TZoneMallocInlines.h>
 
 namespace WebCore {
 

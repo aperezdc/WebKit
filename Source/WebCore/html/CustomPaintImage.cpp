@@ -34,6 +34,7 @@
 #include "CSSStyleImageValue.h"
 #include "CSSUnitValue.h"
 #include "CSSUnparsedValue.h"
+#include "ContextDestructionObserverInlines.h"
 #include "CustomPaintCanvas.h"
 #include "GraphicsContext.h"
 #include "HashMapStylePropertyMapReadOnly.h"

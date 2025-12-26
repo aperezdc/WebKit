@@ -21,7 +21,7 @@
 #include "config.h"
 #include "FrameTree.h"
 
-#include "Document.h"
+#include "DocumentPage.h"
 #include "FrameLoader.h"
 #include "HTMLFrameOwnerElement.h"
 #include "LocalFrame.h"

@@ -34,6 +34,7 @@
 #include "Database.h"
 #include "Document.h"
 #include "EventTarget.h"
+#include "FrameDestructionObserverInlines.h"
 #include "FrameInspectorController.h"
 #include "InspectorDOMStorageAgent.h"
 #include "JSCommandLineAPIHost.h"

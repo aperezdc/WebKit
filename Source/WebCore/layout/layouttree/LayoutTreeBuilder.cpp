@@ -33,7 +33,7 @@
 #include "HTMLTableColElement.h"
 #include "HTMLTableElement.h"
 #include "InlineDisplayContent.h"
-#include "LayoutBox.h"
+#include "LayoutBoxInlines.h"
 #include "LayoutBoxGeometry.h"
 #include "LayoutChildIterator.h"
 #include "LayoutContext.h"

@@ -25,6 +25,9 @@
 
 #pragma once
 
+#include <wtf/RefPtr.h>
+#include <wtf/WeakPtr.h>
+
 namespace WebCore {
 
 class AccessibilityObject;

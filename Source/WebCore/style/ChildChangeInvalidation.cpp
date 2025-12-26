@@ -30,6 +30,7 @@
 #include "NodeRenderStyle.h"
 #include "PseudoClassChangeInvalidation.h"
 #include "RenderElement.h"
+#include "RenderStyle+GettersInlines.h"
 #include "ShadowRoot.h"
 #include "SlotAssignment.h"
 #include "StyleResolver.h"

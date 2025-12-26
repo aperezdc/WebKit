@@ -44,6 +44,7 @@
 #include "Editing.h"
 #include "EditingBehavior.h"
 #include "EditingInlines.h"
+#include "EditingStyle.h"
 #include "ElementIteratorInlines.h"
 #include "EventNames.h"
 #include "FilterOperations.h"

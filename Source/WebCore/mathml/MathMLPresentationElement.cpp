@@ -40,6 +40,7 @@
 #include "MathMLMathElement.h"
 #include "MathMLNames.h"
 #include "RenderMathMLBlockInlines.h"
+#include "RenderObjectInlines.h"
 #include "RenderTableCell.h"
 #include "SVGElementTypeHelpers.h"
 #include "SVGSVGElement.h"

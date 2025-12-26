@@ -30,6 +30,7 @@
 #include "Document.h"
 #include "DocumentMarkerController.h"
 #include "NodeDocument.h"
+#include "NodeInlines.h"
 #include "Text.h"
 #include <wtf/Assertions.h>
 

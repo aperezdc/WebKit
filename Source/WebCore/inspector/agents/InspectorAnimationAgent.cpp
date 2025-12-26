@@ -49,6 +49,7 @@
 #include "KeyframeEffect.h"
 #include "LocalFrame.h"
 #include "MutableStyleProperties.h"
+#include "NodeInlines.h"
 #include "Page.h"
 #include "PlaybackDirection.h"
 #include "RenderElement.h"

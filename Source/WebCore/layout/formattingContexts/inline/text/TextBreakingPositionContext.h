@@ -26,6 +26,7 @@
 #pragma once
 
 #include <WebCore/RenderStyle.h>
+#include <WebCore/StyleWebKitLocale.h>
 #include <wtf/HashFunctions.h>
 #include <wtf/HashMap.h>
 #include <wtf/Hasher.h>

@@ -31,6 +31,7 @@
 #include "CrossOriginEmbedderPolicy.h"
 #include "CrossOriginPreflightResultCache.h"
 #include "DocumentLoader.h"
+#include "DocumentPage.h"
 #include "DocumentSecurityOrigin.h"
 #include "HTTPHeaderNames.h"
 #include "HTTPParsers.h"

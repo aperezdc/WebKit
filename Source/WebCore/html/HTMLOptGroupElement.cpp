@@ -34,6 +34,7 @@
 #include "PseudoClassChangeInvalidation.h"
 #include "RenderMenuList.h"
 #include "NodeRenderStyle.h"
+#include "Settings.h"
 #include "StyleResolver.h"
 #include "TypedElementDescendantIteratorInlines.h"
 #include <wtf/StdLibExtras.h>

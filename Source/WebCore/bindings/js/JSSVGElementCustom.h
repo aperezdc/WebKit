@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Igalia S.L. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,31 +25,4 @@
 
 #pragma once
 
-#include "Document.h"
-#include "MainThreadStylePropertyMapReadOnly.h"
-#include <wtf/HashMap.h>
-#include <wtf/text/AtomStringHash.h>
-
-namespace WebCore {
-
-class HashMapStylePropertyMapReadOnly final : public MainThreadStylePropertyMapReadOnly {
-public:
-    static Ref<HashMapStylePropertyMapReadOnly> create(HashMap<AtomString, RefPtr<CSSValue>>&&);
-    ~HashMapStylePropertyMapReadOnly();
-
-    Type type() const final { return Type::HashMap; }
-    RefPtr<CSSValue> propertyValue(CSSPropertyID) const final;
-    String shorthandPropertySerialization(CSSPropertyID) const final;
-    RefPtr<CSSValue> customPropertyValue(const AtomString& property) const final;
-    unsigned size() const final;
-    Vector<StylePropertyMapEntry> entries(ScriptExecutionContext*) const final;
-
-private:
-    HashMapStylePropertyMapReadOnly(HashMap<AtomString, RefPtr<CSSValue>>&&);
-
-    HashMap<AtomString, RefPtr<CSSValue>> m_map;
-};
-
-} // namespace WebCore
-
-SPECIALIZE_TYPE_TRAITS_CSSOM_STYLE_PROPERTY_MAP(HashMapStylePropertyMapReadOnly, WebCore::StylePropertyMapReadOnly::Type::HashMap);
+#include "SVGComponentTransferFunctionElementInlines.h" // NOLINT

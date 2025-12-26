@@ -83,10 +83,12 @@ private:
     XrSpace m_gripSpace { XR_NULL_HANDLE };
     XrAction m_aimAction { XR_NULL_HANDLE };
     XrSpace m_aimSpace { XR_NULL_HANDLE };
+#if defined(XR_EXT_hand_interaction)
     XrAction m_pinchPoseAction { XR_NULL_HANDLE };
     XrSpace m_pinchSpace { XR_NULL_HANDLE };
     XrAction m_pokePoseAction { XR_NULL_HANDLE };
     XrSpace m_pokeSpace { XR_NULL_HANDLE };
+#endif
     using OpenXRButtonActionsMap = HashMap<OpenXRButtonType, OpenXRButtonActions, IntHash<OpenXRButtonType>, WTF::StrongEnumHashTraits<OpenXRButtonType>>;
     OpenXRButtonActionsMap m_buttonActions;
     using OpenXRAxesMap = HashMap<OpenXRAxisType, XrAction, IntHash<OpenXRAxisType>, WTF::StrongEnumHashTraits<OpenXRAxisType>>;

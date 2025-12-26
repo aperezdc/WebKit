@@ -35,6 +35,7 @@
 #include "HTMLObjectElement.h"
 #include "IdTargetObserver.h"
 #include "LocalFrame.h"
+#include "Settings.h"
 #include "TreeScopeInlines.h"
 #include <wtf/TZoneMallocInlines.h>
 #include <wtf/WeakRef.h>

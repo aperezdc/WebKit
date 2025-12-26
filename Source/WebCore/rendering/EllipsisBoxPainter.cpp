@@ -30,6 +30,7 @@
 #include "LineSelection.h"
 #include "PaintInfo.h"
 #include "RenderObjectDocument.h"
+#include "RenderObjectInlines.h"
 #include "RenderStyle+GettersInlines.h"
 #include "RenderView.h"
 #include "Settings.h"

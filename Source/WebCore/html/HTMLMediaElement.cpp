@@ -67,6 +67,7 @@
 #include "EventNames.h"
 #include "EventTargetInlines.h"
 #include "FourCC.h"
+#include "FrameDestructionObserverInlines.h"
 #include "FrameLoader.h"
 #include "FrameMemoryMonitor.h"
 #include "HTMLAudioElement.h"

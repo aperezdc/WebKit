@@ -36,6 +36,7 @@
 #include "InlineQuirks.h"
 #include "LayoutBoxInlines.h"
 #include "LayoutElementBox.h"
+#include "RenderObjectInlines.h"
 #include "RenderStyle+GettersInlines.h"
 #include "RubyFormattingContext.h"
 #include "Settings.h"

@@ -40,6 +40,7 @@
 #include "RenderMathMLBlockInlines.h"
 #include "RenderMathMLMenclose.h"
 #include "RenderMathMLOperator.h"
+#include "RenderObjectInlines.h"
 #include <wtf/TZoneMallocInlines.h>
 
 static const char16_t gRadicalCharacter = 0x221A;

@@ -27,6 +27,7 @@
 #include "config.h"
 #include "ReadableStreamToSharedBufferSink.h"
 
+#include "ContextDestructionObserverInlines.h"
 #include "DOMException.h"
 #include "ExceptionOr.h"
 #include "JSDOMConvertBufferSource.h"

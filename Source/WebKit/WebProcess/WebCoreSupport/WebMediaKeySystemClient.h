@@ -30,6 +30,7 @@
 #include <WebCore/MediaKeySystemClient.h>
 #include <wtf/RefCounted.h>
 #include <wtf/TZoneMalloc.h>
+#include <wtf/WeakPtr.h>
 
 namespace WebKit {
 

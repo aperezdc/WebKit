@@ -22,6 +22,7 @@
 
 #if USE(LIBRICE)
 
+#include "MessageSenderInlines.h"
 #include "NetworkConnectionToWebProcessMessages.h"
 #include "NetworkProcessConnection.h"
 #include "RiceBackendMessages.h"

@@ -25,6 +25,7 @@
 #include "config.h"
 #include "StyleDifference.h"
 
+#include "CSSValuePool.h"
 #include "InlineTextBoxStyle.h"
 #include "RenderStyleConstants.h"
 #include "RenderStyle+GettersInlines.h"

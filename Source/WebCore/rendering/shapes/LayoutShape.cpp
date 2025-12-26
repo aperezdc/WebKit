@@ -37,9 +37,16 @@
 #include "PolygonLayoutShape.h"
 #include "RasterLayoutShape.h"
 #include "RectangleLayoutShape.h"
+#include "StyleCircleFunction.h"
+#include "StyleEllipseFunction.h"
+#include "StyleInsetFunction.h"
+#include "StylePathFunction.h"
+#include "StylePolygonFunction.h"
 #include "StylePosition.h"
 #include "StylePrimitiveNumericTypes+Evaluation.h"
+#include "StyleShapeFunction.h"
 #include "WindRule.h"
+#include <wtf/Variant.h>
 
 namespace WebCore {
 

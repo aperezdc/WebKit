@@ -33,6 +33,7 @@
 #include "FrameConsoleAgent.h"
 
 #include "CommandLineAPIHost.h"
+#include "DocumentPage.h"
 #include "Frame.h"
 #include "FrameInlines.h"
 #include "InspectorDOMAgent.h"

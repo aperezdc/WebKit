@@ -39,6 +39,7 @@
 #include "WebXRSession.h"
 #include "WebXRTransientInputHitTestSource.h"
 #include "WebXRViewerPose.h"
+#include "WebXRWebGLLayer.h"
 #include <JavaScriptCore/GenericTypedArrayViewInlines.h>
 #include <wtf/TZoneMallocInlines.h>
 

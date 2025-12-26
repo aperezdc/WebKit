@@ -34,6 +34,7 @@
 #include "ElementAncestorIteratorInlines.h"
 #include "EventHandler.h"
 #include "EventNames.h"
+#include "FrameDestructionObserverInlines.h"
 #include "FrameLoader.h"
 #include "FrameLoaderTypes.h"
 #include "FrameSelection.h"

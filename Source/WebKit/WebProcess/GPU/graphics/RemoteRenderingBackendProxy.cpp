@@ -42,6 +42,7 @@
 #include "RemoteImageBufferProxy.h"
 #include "RemoteImageBufferProxyMessages.h"
 #include "RemoteImageBufferSetProxy.h"
+#include "RemoteNativeImageProxy.h"
 #include "RemoteRenderingBackendMessages.h"
 #include "RemoteRenderingBackendProxyMessages.h"
 #include "RemoteSharedResourceCacheProxy.h"

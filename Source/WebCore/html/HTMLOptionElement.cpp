@@ -44,6 +44,7 @@
 #include "RenderStyle+GettersInlines.h"
 #include "RenderTheme.h"
 #include "ScriptElement.h"
+#include "Settings.h"
 #include "StyleResolver.h"
 #include "Text.h"
 #include <wtf/Ref.h>

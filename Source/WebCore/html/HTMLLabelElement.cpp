@@ -34,6 +34,7 @@
 #include "HTMLNames.h"
 #include "MouseEvent.h"
 #include "SelectionRestorationMode.h"
+#include "Settings.h"
 #include "TypedElementDescendantIteratorInlines.h"
 #include <wtf/SetForScope.h>
 #include <wtf/TZoneMallocInlines.h>

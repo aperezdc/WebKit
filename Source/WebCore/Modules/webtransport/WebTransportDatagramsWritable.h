@@ -25,13 +25,13 @@
 
 #pragma once
 
+#include "WebTransportSendGroup.h"
 #include "WritableStream.h"
 
 namespace WebCore {
 
 class InternalWritableStream;
 class ScriptExecutionContext;
-class WebTransportSendGroup;
 class WebTransport;
 struct WebTransportSendOptions;
 

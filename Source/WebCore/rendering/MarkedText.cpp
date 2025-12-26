@@ -37,6 +37,7 @@
 #include "RenderStyle+GettersInlines.h"
 #include "RenderText.h"
 #include "RenderedDocumentMarker.h"
+#include "Settings.h"
 #include "TextBoxSelectableRange.h"
 #include <algorithm>
 #include <ranges>

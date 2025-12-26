@@ -34,6 +34,7 @@
 #include "LayoutElementBox.h"
 #include "LayoutInitialContainingBlock.h"
 #include "RenderBox.h"
+#include "RenderStyle+GettersInlines.h"
 #include "Settings.h"
 #include "TableFormattingState.h"
 #include <wtf/TZoneMallocInlines.h>

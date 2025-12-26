@@ -27,6 +27,7 @@
 #include "PageNetworkAgent.h"
 
 #include "DocumentLoader.h"
+#include "DocumentPage.h"
 #include "FrameConsoleClient.h"
 #include "FrameDestructionObserverInlines.h"
 #include "InspectorBackendClient.h"

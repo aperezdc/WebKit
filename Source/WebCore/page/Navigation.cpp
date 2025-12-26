@@ -34,6 +34,7 @@
 #include "DOMFormData.h"
 #include "DocumentEventLoop.h"
 #include "DocumentLoader.h"
+#include "DocumentPage.h"
 #include "DocumentSecurityOrigin.h"
 #include "DocumentView.h"
 #include "ErrorEvent.h"
@@ -51,6 +52,7 @@
 #include "JSDOMGlobalObject.h"
 #include "JSDOMPromise.h"
 #include "JSNavigationHistoryEntry.h"
+#include "LocalFrameInlines.h"
 #include "Logging.h"
 #include "MessagePort.h"
 #include "NavigateEvent.h"
@@ -63,6 +65,7 @@
 #include "ScriptExecutionContextInlines.h"
 #include "SecurityOrigin.h"
 #include "SerializedScriptValue.h"
+#include "Settings.h"
 #include "ShouldTreatAsContinuingLoad.h"
 #include "UserGestureIndicator.h"
 #include <optional>

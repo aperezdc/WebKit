@@ -173,7 +173,7 @@ private:
     uint16_t m_port { defaultPort };
     SocketType m_serverSocket { invalidSocketValue };
     SocketType m_clientSocket { invalidSocketValue };
-    RefPtr<Thread> m_acceptThread;
+    RefPtr<WTF::Thread> m_acceptThread;
 
     bool m_noAckMode { false };
     std::unique_ptr<QueryHandler> m_queryHandler;

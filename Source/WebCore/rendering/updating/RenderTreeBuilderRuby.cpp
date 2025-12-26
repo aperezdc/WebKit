@@ -29,6 +29,7 @@
 #include "RenderBlock.h"
 #include "RenderInline.h"
 #include "RenderObjectInlines.h"
+#include "RenderStyle+SettersInlines.h"
 #include "RenderTreeBuilder.h"
 #include "RenderTreeBuilderBlock.h"
 #include "RenderTreeBuilderInline.h"

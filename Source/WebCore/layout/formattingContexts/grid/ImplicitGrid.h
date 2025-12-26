@@ -27,6 +27,8 @@
 
 #include <WebCore/GridTypeAliases.h>
 #include <wtf/Forward.h>
+#include <wtf/HashFunctions.h>
+#include <wtf/HashTraits.h>
 #include <wtf/Vector.h>
 
 namespace WebCore {

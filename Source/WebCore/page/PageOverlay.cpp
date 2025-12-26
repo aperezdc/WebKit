@@ -27,6 +27,7 @@
 #include "PageOverlay.h"
 
 #include "GraphicsContext.h"
+#include "GraphicsLayer.h"
 #include "LocalFrame.h"
 #include "LocalFrameView.h"
 #include "Logging.h"

@@ -52,7 +52,7 @@
 #include "HTMLNames.h"
 #include "HitTestRequest.h"
 #include "HitTestResult.h"
-#include "LocalFrame.h"
+#include "LocalFrameInlines.h"
 #include "LocalFrameView.h"
 #include "NamedNodeMap.h"
 #include "NodeInlines.h"

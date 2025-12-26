@@ -34,6 +34,7 @@
 #include "HTTPParsers.h"
 #include "MathMLNames.h"
 #include "RenderMathMLToken.h"
+#include "RenderStyle+GettersInlines.h"
 #include <wtf/TZoneMallocInlines.h>
 
 namespace WebCore {

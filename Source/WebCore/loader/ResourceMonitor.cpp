@@ -28,7 +28,7 @@
 
 #include "DiagnosticLoggingClient.h"
 #include "DiagnosticLoggingKeys.h"
-#include "Document.h"
+#include "DocumentPage.h"
 #include "FrameInlines.h"
 #include "FrameLoader.h"
 #include "HTMLIFrameElement.h"

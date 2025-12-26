@@ -34,6 +34,7 @@
 #include "FileChooser.h"
 #include "FileList.h"
 #include "FormController.h"
+#include "FrameDestructionObserverInlines.h"
 #include "HTMLInputElement.h"
 #include "HTMLNames.h"
 #include "Icon.h"

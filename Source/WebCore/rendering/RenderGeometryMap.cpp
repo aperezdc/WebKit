@@ -26,6 +26,7 @@
 #include "config.h"
 #include "RenderGeometryMap.h"
 
+#include "RenderElementInlines.h"
 #include "RenderFragmentedFlow.h"
 #include "RenderLayer.h"
 #include "RenderObjectInlines.h"

@@ -28,6 +28,7 @@
 #if ENABLE(WEBGL)
 
 #include <JavaScriptCore/InspectorProtocolObjects.h>
+#include <wtf/WeakRef.h>
 
 namespace WebCore {
 

@@ -29,6 +29,7 @@
 
 #include "Chrome.h"
 #include "ContainerNodeInlines.h"
+#include "DocumentPage.h"
 #include "EventHandler.h"
 #include "EventNames.h"
 #include "FrameDestructionObserverInlines.h"

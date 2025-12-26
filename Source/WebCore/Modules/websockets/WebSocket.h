@@ -47,6 +47,7 @@ class ArrayBufferView;
 namespace WebCore {
 
 class Blob;
+class SecurityOrigin;
 class ThreadableWebSocketChannel;
 template<typename> class ExceptionOr;
 

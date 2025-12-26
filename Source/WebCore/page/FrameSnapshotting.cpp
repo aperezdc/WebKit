@@ -31,7 +31,7 @@
 #include "FrameSnapshotting.h"
 
 #include "ColorBlending.h"
-#include "Document.h"
+#include "DocumentPage.h"
 #include "DocumentView.h"
 #include "FloatRect.h"
 #include "FrameSelection.h"

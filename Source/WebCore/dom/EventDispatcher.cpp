@@ -43,6 +43,7 @@
 #include "NodeDocument.h"
 #include "ScopedEventQueue.h"
 #include "ScriptDisallowedScope.h"
+#include "Settings.h"
 #include "ShadowRoot.h"
 #include "TextEvent.h"
 #include "TouchEvent.h"

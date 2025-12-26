@@ -45,6 +45,7 @@
 #include "RenderObjectInlines.h"
 #include "RenderTreeBuilder.h"
 #include "RenderView.h"
+#include "Settings.h"
 #include "StyleGridPositionsResolver.h"
 #include "StylePrimitiveNumericTypes+Evaluation.h"
 #include <ranges>

@@ -30,8 +30,10 @@
 #if ENABLE(MATHML)
 
 #include "RenderMathMLBlockInlines.h"
+#include "RenderObjectInlines.h"
 #include <cmath>
 #include <wtf/TZoneMallocInlines.h>
+#include <wtf/text/TextStream.h>
 
 namespace WebCore {
 

@@ -73,6 +73,7 @@
 #include "FloatRect.h"
 #include "FormState.h"
 #include "FormSubmission.h"
+#include "FrameDestructionObserverInlines.h"
 #include "FrameInlines.h"
 #include "FrameLoadRequest.h"
 #include "FrameNetworkingContext.h"

@@ -29,6 +29,7 @@
 #include "Chrome.h"
 #include "ChromeClient.h"
 #include "CookieConsentDecisionResult.h"
+#include "DocumentPage.h"
 #include "ExceptionCode.h"
 #include "JSDOMPromiseDeferred.h"
 #include "LocalFrame.h"

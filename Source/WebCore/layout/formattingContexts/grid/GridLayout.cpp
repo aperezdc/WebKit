@@ -29,6 +29,7 @@
 #include "GridAreaLines.h"
 #include "GridItemRect.h"
 #include "GridLayoutUtils.h"
+#include "GridTypeAliases.h"
 #include "ImplicitGrid.h"
 #include "RenderStyle+GettersInlines.h"
 #include "LayoutBoxGeometry.h"

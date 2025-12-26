@@ -35,6 +35,7 @@
 #include "ElementInlines.h"
 #include "ElementRuleCollector.h"
 #include "FloatSizeHash.h"
+#include "FrameDestructionObserverInlines.h"
 #include "FrameSnapshotting.h"
 #include "GeometryUtilities.h"
 #include "HTMLAnchorElement.h"

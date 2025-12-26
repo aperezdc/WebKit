@@ -26,6 +26,7 @@
 #include "config.h"
 #include "Origin.h"
 
+#include "ElementInlines.h"
 #include "ExceptionOr.h"
 #include "JSDOMBindingSecurity.h"
 #include "JSDOMBindingSecurityInlines.h"
@@ -101,11 +102,11 @@ ExceptionOr<Ref<Origin>> Origin::from(ScriptExecutionContext& context, JSC::JSVa
         return create(SecurityOrigin::create(domURL->href()));
     } else if (auto* jsAElement = JSC::jsDynamicCast<JSHTMLAnchorElement*>(value)) {
         Ref aElement = jsAElement->wrapped();
-        if (aElement->hasAttributeWithoutSynchronization(hrefAttr))
+        if (aElement->hasAttributeWithoutSynchronization(HTMLNames::hrefAttr))
             return create(SecurityOrigin::create(aElement->href()));
     } else if (auto* jsAreaElement = JSC::jsDynamicCast<JSHTMLAreaElement*>(value)) {
         Ref areaElement = jsAreaElement->wrapped();
-        if (areaElement->hasAttributeWithoutSynchronization(hrefAttr))
+        if (areaElement->hasAttributeWithoutSynchronization(HTMLNames::hrefAttr))
             return create(SecurityOrigin::create(areaElement->href()));
     }
     return Exception { ExceptionCode::TypeError };

@@ -32,6 +32,7 @@
 #include "FaceDetectorInterface.h"
 #include "FaceDetectorOptionsInterface.h"
 #include "PointerLockController.h"
+#include "ScrollableArea.h"
 #include "ScrollbarsController.h"
 #include "ScrollingCoordinator.h"
 #include "TextDetectorInterface.h"

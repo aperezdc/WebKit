@@ -40,6 +40,7 @@
 #include "RTCErrorEvent.h"
 #include "ScriptExecutionContext.h"
 #include "ScriptWrappableInlines.h"
+#include "SecurityOrigin.h"
 #include "SharedBuffer.h"
 #include <JavaScriptCore/ArrayBufferView.h>
 #include <JavaScriptCore/ConsoleTypes.h>

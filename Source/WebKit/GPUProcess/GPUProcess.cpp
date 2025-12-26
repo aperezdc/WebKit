@@ -391,7 +391,7 @@ void GPUProcess::sinkCompletedSnapshotToPDF(RemoteSnapshotIdentifier identifier,
 
 #endif
 
-void GPUProcess::sinkCompletedSnapshotToBitmap(RemoteSnapshotIdentifier identifier, const FloatSize& size, FrameIdentifier rootFrameIdentifier, CompletionHandler<void(std::optional<WebCore::ShareableBitmap::Handle>&&)>&& completionHandler)
+void GPUProcess::sinkCompletedSnapshotToBitmap(RemoteSnapshotIdentifier identifier, const WebCore::FloatSize& size, WebCore::FrameIdentifier rootFrameIdentifier, CompletionHandler<void(std::optional<WebCore::ShareableBitmap::Handle>&&)>&& completionHandler)
 {
     RefPtr<RemoteSnapshot> snapshot;
     {

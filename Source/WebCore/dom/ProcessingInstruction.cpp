@@ -30,6 +30,7 @@
 #include "DocumentInlines.h"
 #include "DocumentResourceLoader.h"
 #include "DocumentView.h"
+#include "FrameDestructionObserverInlines.h"
 #include "FrameLoader.h"
 #include "LocalFrame.h"
 #include "MediaQueryParser.h"
@@ -40,6 +41,7 @@
 #include "Settings.h"
 #include "StyleScope.h"
 #include "StyleSheetContents.h"
+#include "Text.h"
 #include "XMLDocumentParser.h"
 #include "XSLStyleSheet.h"
 #include <wtf/SetForScope.h>

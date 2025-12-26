@@ -33,6 +33,7 @@
 #include "Settings.h"
 #include "StyleResolver.h"
 #include "TextBreakingPositionCache.h"
+#include "TextSpacing.h"
 #include "TextUtil.h"
 #include "UnicodeBidi.h"
 #include "platform/text/TextSpacing.h"

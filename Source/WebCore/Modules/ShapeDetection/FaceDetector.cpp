@@ -28,6 +28,7 @@
 
 #include "Chrome.h"
 #include "DetectedFace.h"
+#include "DocumentPage.h"
 #include "FaceDetectorOptions.h"
 #include "ImageBitmap.h"
 #include "ImageBitmapOptions.h"

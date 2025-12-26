@@ -31,8 +31,9 @@
 #include "NetworkResourcesData.h"
 
 #include "CachedResource.h"
-#include "CertificateInfo.h"
 #include "InspectorNetworkAgent.h"
+#include "InspectorResourceUtilities.h"
+#include "RenderStyle+GettersInlines.h"
 #include "ResourceResponse.h"
 #include "TextResourceDecoder.h"
 #include <wtf/TZoneMallocInlines.h>

@@ -37,6 +37,7 @@
 #include "DeleteSelectionCommand.h"
 #include "DocumentFragment.h"
 #include "DocumentMarkerController.h"
+#include "DocumentMarkers.h"
 #include "DocumentView.h"
 #include "Editing.h"
 #include "Editor.h"

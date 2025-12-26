@@ -30,6 +30,7 @@
 #include "BarProp.h"
 
 #include "Chrome.h"
+#include "DocumentPage.h"
 #include "LocalFrame.h"
 #include "Page.h"
 #include "ScriptWrappableInlines.h"

@@ -35,6 +35,7 @@
 #include "MathMLNames.h"
 #include "MathMLSelectElement.h"
 #include "RenderMathMLBlock.h"
+#include "RenderStyle+GettersInlines.h"
 #include "SVGElementTypeHelpers.h"
 #include "SVGSVGElement.h"
 #include "Settings.h"

@@ -33,6 +33,7 @@
 #include "EventNames.h"
 #include "EventTargetInlines.h"
 #include "EventTarget.h"
+#include "FrameDestructionObserverInlines.h"
 #include "FrameInlines.h"
 #include "HitTestResult.h"
 #include "MouseEventTypes.h"
@@ -40,6 +41,7 @@
 #include "Page.h"
 #include "PointerEvent.h"
 #include "Quirks.h"
+#include "TaskSource.h"
 #include <algorithm>
 #include <ranges>
 #include <wtf/CheckedArithmetic.h>

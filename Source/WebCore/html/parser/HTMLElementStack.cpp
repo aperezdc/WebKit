@@ -27,12 +27,15 @@
 #include "config.h"
 #include "HTMLElementStack.h"
 
+#include "Document.h"
 #include "DocumentFragment.h"
 #include "HTMLOptGroupElement.h"
 #include "HTMLOptionElement.h"
 #include "HTMLTableElement.h"
 #include "HTMLTemplateElement.h"
 #include "MathMLNames.h"
+#include "NodeDocument.h"
+#include "Settings.h"
 #include <wtf/TZoneMallocInlines.h>
 
 namespace WebCore {

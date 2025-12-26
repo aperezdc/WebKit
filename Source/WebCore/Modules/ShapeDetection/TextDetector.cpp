@@ -28,7 +28,7 @@
 
 #include "Chrome.h"
 #include "DetectedText.h"
-#include "Document.h"
+#include "DocumentPage.h"
 #include "ImageBitmap.h"
 #include "ImageBitmapOptions.h"
 #include "ImageBuffer.h"

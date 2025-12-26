@@ -34,6 +34,8 @@
 #include "LayerHostingContext.h"
 #include "Logging.h"
 #include "RemoteAudioVideoRendererProxyManagerMessages.h"
+#include "RemoteCDMFactoryProxy.h"
+#include "RemoteCDMInstanceProxy.h"
 #include "RemoteLegacyCDMFactoryProxy.h"
 #include "RemoteLegacyCDMSessionProxy.h"
 #include "RemoteVideoFrameObjectHeap.h"

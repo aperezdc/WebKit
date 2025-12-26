@@ -43,6 +43,7 @@
 #include "HTMLNames.h"
 #include "InspectorHistory.h"
 #include "Node.h"
+#include "Text.h"
 #include "XMLDocument.h"
 #include "XMLDocumentParser.h"
 #include <wtf/Deque.h>

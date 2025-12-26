@@ -33,6 +33,7 @@
 #include "RenderBoxInlines.h"
 #include "RenderBoxModelObjectInlines.h"
 #include "RenderMultiColumnFlow.h"
+#include "RenderStyle+SettersInlines.h"
 #include <wtf/TZoneMallocInlines.h>
 
 namespace WebCore {

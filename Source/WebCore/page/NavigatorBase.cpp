@@ -29,6 +29,7 @@
 
 #include "ContextDestructionObserverInlines.h"
 #include "Document.h"
+#include "ExceptionOr.h"
 #include "GPU.h"
 #include "ScriptTrackingPrivacyCategory.h"
 #include "ServiceWorkerContainer.h"

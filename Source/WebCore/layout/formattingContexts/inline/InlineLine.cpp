@@ -30,6 +30,7 @@
 #include "InlineFormattingContext.h"
 #include "InlineSoftLineBreakItem.h"
 #include "LayoutBoxGeometry.h"
+#include "LayoutBoxInlines.h"
 #include "RenderStyle+GettersInlines.h"
 #include "TextFlags.h"
 #include "TextUtil.h"

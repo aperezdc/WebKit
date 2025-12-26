@@ -35,7 +35,7 @@
 #include "ContextDestructionObserverInlines.h"
 #include "DedicatedWorkerGlobalScope.h"
 #include "DedicatedWorkerThread.h"
-#include "Document.h"
+#include "DocumentPage.h"
 #include "ErrorEvent.h"
 #include "EventNames.h"
 #include "FetchRequestCredentials.h"

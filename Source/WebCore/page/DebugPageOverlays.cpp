@@ -37,6 +37,7 @@
 #include "HitTestResult.h"
 #include "InteractionRegion.h"
 #include "LocalFrameView.h"
+#include "NodeInlines.h"
 #include "Page.h"
 #include "PageOverlay.h"
 #include "PageOverlayController.h"

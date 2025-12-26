@@ -26,6 +26,8 @@
 #include "config.h"
 #include "JSNavigateEvent.h"
 
+#include "WebCoreOpaqueRootInlines.h"
+
 namespace WebCore {
 
 template<typename Visitor>

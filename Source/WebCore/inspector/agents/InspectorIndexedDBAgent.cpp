@@ -60,6 +60,7 @@
 #include "LocalFrame.h"
 #include "LocalFrameInlines.h"
 #include "SecurityOrigin.h"
+#include "Settings.h"
 #include "WindowOrWorkerGlobalScopeIndexedDatabase.h"
 #include <JavaScriptCore/HeapInlines.h>
 #include <JavaScriptCore/InjectedScript.h>

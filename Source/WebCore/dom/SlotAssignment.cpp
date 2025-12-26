@@ -29,6 +29,7 @@
 #include "ElementInlines.h"
 #include "HTMLSlotElement.h"
 #include "InspectorInstrumentation.h"
+#include "RenderStyle+GettersInlines.h"
 #include "RenderTreeUpdater.h"
 #include "ShadowRoot.h"
 #include "TypedElementDescendantIteratorInlines.h"

@@ -26,6 +26,7 @@
 #include "config.h"
 #include "ImageQualityController.h"
 
+#include "DocumentView.h"
 #include "FrameDestructionObserverInlines.h"
 #include "GraphicsContext.h"
 #include "LocalFrame.h"

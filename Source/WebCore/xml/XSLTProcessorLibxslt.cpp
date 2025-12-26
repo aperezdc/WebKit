@@ -27,6 +27,7 @@
 #include "XSLTProcessor.h"
 
 #include "CachedResourceLoader.h"
+#include "DocumentResourceLoader.h"
 #include "DocumentSecurityOrigin.h"
 #include "FrameConsoleClient.h"
 #include "FrameDestructionObserverInlines.h"
@@ -40,6 +41,7 @@
 #include "ResourceResponse.h"
 #include "SecurityOrigin.h"
 #include "SharedBuffer.h"
+#include "Text.h"
 #include "TransformSource.h"
 #include "XMLDocumentParser.h"
 #include "XMLDocumentParserScope.h"

@@ -37,9 +37,12 @@
 #include "CSSTokenizer.h"
 #include "CSSValuePair.h"
 #include "CaptionDisplaySettingsOptions.h"
+#include "DocumentPage.h"
 #include "Element.h"
 #include "HTMLVideoElement.h"
 #include "JSDOMPromiseDeferred.h"
+#include "NodeDocument.h"
+#include "Page.h"
 #include "ResolvedCaptionDisplaySettingsOptions.h"
 
 namespace WebCore {

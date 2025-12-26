@@ -31,7 +31,7 @@
 #include "CSSPropertyNames.h"
 #include "Chrome.h"
 #include "ChromeClient.h"
-#include "Document.h"
+#include "DocumentPage.h"
 #include "DocumentView.h"
 #include "ElementInlines.h"
 #include "EventNames.h"

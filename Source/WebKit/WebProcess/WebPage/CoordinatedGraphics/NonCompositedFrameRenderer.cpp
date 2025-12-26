@@ -28,6 +28,13 @@
 
 #if USE(COORDINATED_GRAPHICS)
 
+#include "DrawingArea.h"
+#include "DrawingAreaProxyMessages.h"
+#include "LayerTreeContext.h"
+#include "MessageSenderInlines.h"
+#include "WebPageInlines.h"
+#include <WebCore/PlatformDisplay.h>
+
 namespace WebKit {
 using namespace WebCore;
 

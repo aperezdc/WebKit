@@ -26,6 +26,7 @@
 #include "config.h"
 #include "EmptyControlFactory.h"
 
+#include "ControlPart.h"
 #include "NotImplemented.h"
 #include "PlatformControl.h"
 #include <wtf/TZoneMallocInlines.h>

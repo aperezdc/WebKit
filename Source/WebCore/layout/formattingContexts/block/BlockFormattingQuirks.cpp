@@ -29,7 +29,7 @@
 #include "BlockFormattingContext.h"
 #include "BlockFormattingGeometry.h"
 #include "BlockMarginCollapse.h"
-#include "LayoutBox.h"
+#include "LayoutBoxInlines.h"
 #include "LayoutBoxGeometry.h"
 #include "LayoutContainingBlockChainIterator.h"
 #include "LayoutElementBox.h"

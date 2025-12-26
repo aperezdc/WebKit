@@ -43,6 +43,7 @@
 #include "XLinkNames.h"
 #include "XMLNSNames.h"
 #include "XMLNames.h"
+#include <wtf/TZoneMallocInlines.h>
 
 namespace WebCore {
 

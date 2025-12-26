@@ -41,6 +41,7 @@
 #include "NodeInlines.h"
 #include "NodeName.h"
 #include "NodeRareData.h"
+#include "RenderStyle+GettersInlines.h"
 #include "RenderTable.h"
 #include <wtf/NeverDestroyed.h>
 #include <wtf/Ref.h>

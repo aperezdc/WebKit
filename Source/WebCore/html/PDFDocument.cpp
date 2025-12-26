@@ -29,6 +29,7 @@
 
 #include "AddEventListenerOptionsInlines.h"
 #include "DocumentLoader.h"
+#include "DocumentSettingsValues.h"
 #include "EventListener.h"
 #include "EventNames.h"
 #include "FrameDestructionObserverInlines.h"

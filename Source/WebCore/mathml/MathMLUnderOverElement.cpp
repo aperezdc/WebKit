@@ -30,6 +30,8 @@
 
 #if ENABLE(MATHML)
 
+#include "ContainerNodeInlines.h"
+#include "NodeName.h"
 #include "RenderMathMLUnderOver.h"
 #include "RenderObjectInlines.h"
 #include <wtf/TZoneMallocInlines.h>

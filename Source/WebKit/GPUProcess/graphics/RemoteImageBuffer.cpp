@@ -135,7 +135,7 @@ void RemoteImageBuffer::putPixelBuffer(const WebCore::PixelBufferSourceView& pix
     m_imageBuffer->putPixelBuffer(pixelBuffer, srcRect, destPoint, destFormat);
 }
 
-void RemoteImageBuffer::copyNativeImage(RenderingResourceIdentifier imageIdentifier)
+void RemoteImageBuffer::copyNativeImage(WebCore::RenderingResourceIdentifier imageIdentifier)
 {
     assertIsCurrent(workQueue());
     RefPtr image = m_imageBuffer->copyNativeImage();

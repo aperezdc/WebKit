@@ -28,6 +28,7 @@
 
 #if ENABLE(WEBXR)
 
+#include "WebXRWebGLLayer.h"
 #include "XRRenderStateInit.h"
 #include <wtf/MathExtras.h>
 #include <wtf/TZoneMallocInlines.h>
@@ -69,6 +70,16 @@ void WebXRRenderState::setLayers(const Vector<Ref<WebXRLayer>>& layers)
     m_layers = layers;
 }
 #endif
+
+RefPtr<WebXRWebGLLayer> WebXRRenderState::baseLayer() const
+{
+    return m_baseLayer;
+}
+
+void WebXRRenderState::setBaseLayer(WebXRWebGLLayer* baseLayer)
+{
+    m_baseLayer = baseLayer;
+}
 
 } // namespace WebCore
 

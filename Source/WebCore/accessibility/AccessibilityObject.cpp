@@ -51,6 +51,7 @@
 #include "CustomElementDefaultARIA.h"
 #include "DOMTokenList.h"
 #include "DocumentPage.h"
+#include "DocumentView.h"
 #include "EditingInlines.h"
 #include "Editor.h"
 #include "ElementInlines.h"

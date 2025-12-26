@@ -32,7 +32,7 @@
 #include "BlobEvent.h"
 #include "ContentType.h"
 #include "ContextDestructionObserverInlines.h"
-#include "Document.h"
+#include "DocumentPage.h"
 #include "EventNames.h"
 #include "MediaRecorderErrorEvent.h"
 #include "MediaRecorderPrivate.h"

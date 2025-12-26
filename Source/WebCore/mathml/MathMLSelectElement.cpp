@@ -37,8 +37,10 @@
 #include "MathMLNames.h"
 #include "MouseEvent.h"
 #include "RenderMathMLRow.h"
+#include "RenderStyle+GettersInlines.h"
 #include "RenderTreeUpdater.h"
 #include "SVGElement.h"
+#include "Settings.h"
 #include <wtf/TZoneMallocInlines.h>
 
 namespace WebCore {

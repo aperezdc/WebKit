@@ -29,6 +29,7 @@
 #if ENABLE(GPU_PROCESS)
 
 #include "ArgumentCoders.h"
+#include "Logging.h"
 #include "RemoteRenderingBackend.h"
 #include "RemoteResourceCache.h"
 #include "SharedPreferencesForWebProcess.h"

@@ -31,13 +31,16 @@
 #include "CachedScript.h"
 #include "DocumentInlines.h"
 #include "DocumentLoader.h"
+#include "DocumentPage.h"
 #include "DocumentResourceLoader.h"
 #include "FrameLoader.h"
 #include "InspectorResourceType.h"
-#include "LocalFrame.h"
+#include "LocalFrameInlines.h"
 #include "MIMETypeRegistry.h"
 #include "MemoryCache.h"
+#include "Page.h"
 #include "SharedBuffer.h"
+#include <JavaScriptCore/ContentSearchUtilities.h>
 
 namespace Inspector {
 

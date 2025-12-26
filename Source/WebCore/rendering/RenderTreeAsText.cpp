@@ -29,7 +29,7 @@
 #include "ClipRect.h"
 #include "ColorSerialization.h"
 #include "ContainerNodeInlines.h"
-#include "Document.h"
+#include "DocumentView.h"
 #include "ElementInlines.h"
 #include "FrameSelection.h"
 #include "GraphicsLayer.h"

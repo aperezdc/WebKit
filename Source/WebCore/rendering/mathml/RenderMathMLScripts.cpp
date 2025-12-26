@@ -34,6 +34,7 @@
 #include "MathMLScriptsElement.h"
 #include "RenderMathMLBlockInlines.h"
 #include "RenderMathMLOperator.h"
+#include "RenderObjectInlines.h"
 #include "Settings.h"
 #include <wtf/TZoneMallocInlines.h>
 

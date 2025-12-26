@@ -27,6 +27,7 @@
 
 #if ENABLE(VIDEO)
 
+#include "HTMLMediaElementEnums.h"
 #include "JSValueInWrappedObject.h"
 #include "MediaSession.h"
 #include <wtf/Ref.h>
@@ -52,8 +53,6 @@ class VTTCue;
 class VoidCallback;
 
 struct MediaControlsContextMenuItem;
-
-enum class HTMLMediaElementSourceType : uint8_t;
 
 class MediaControlsHost final
     : public CanMakeWeakPtr<MediaControlsHost>

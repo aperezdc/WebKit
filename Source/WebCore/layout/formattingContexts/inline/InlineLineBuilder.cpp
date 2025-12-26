@@ -31,7 +31,7 @@
 #include "InlineFormattingContext.h"
 #include "InlineFormattingUtils.h"
 #include "InlineQuirks.h"
-#include "LayoutBox.h"
+#include "LayoutBoxInlines.h"
 #include "LayoutBoxGeometry.h"
 #include "LayoutShape.h"
 #include "RenderStyle+GettersInlines.h"

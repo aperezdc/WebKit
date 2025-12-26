@@ -22,7 +22,8 @@
 
 [
     JSGenerateToNativeObject,
-    Exposed=Window
+    Exposed=Window,
+    JSCustomHeader
 ] interface SVGElement : Element {
 
     readonly attribute SVGAnimatedString className;

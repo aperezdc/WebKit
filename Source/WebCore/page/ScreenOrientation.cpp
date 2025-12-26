@@ -28,6 +28,7 @@
 
 #include "ContextDestructionObserverInlines.h"
 #include "DocumentFullscreen.h"
+#include "DocumentPage.h"
 #include "DocumentSecurityOrigin.h"
 #include "DocumentView.h"
 #include "Element.h"

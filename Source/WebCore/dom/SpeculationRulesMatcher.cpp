@@ -28,9 +28,11 @@
 
 #include "CheckVisibilityOptions.h"
 #include "Document.h"
-#include "Element.h"
+#include "ElementInlines.h"
+#include "ElementRareData.h"
 #include "HTMLAnchorElement.h"
 #include "JSDOMGlobalObject.h"
+#include "NodeDocument.h"
 #include "ReferrerPolicy.h"
 #include "ScriptController.h"
 #include "SelectorQuery.h"

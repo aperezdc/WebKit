@@ -42,6 +42,8 @@
 #include "DefaultResourceLoadPriority.h"
 #include "DocumentLoader.h"
 #include "DocumentPage.h"
+#include "DocumentResourceLoader.h"
+#include "DocumentSecurityOrigin.h"
 #include "FetchRequestDestination.h"
 #include "FrameDestructionObserverInlines.h"
 #include "FrameLoader.h"

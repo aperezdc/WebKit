@@ -25,6 +25,8 @@
 #include "WebCoreJSClientData.h"
 #include "WindowProxy.h"
 #include <JavaScriptCore/HeapCellInlines.h>
+#include <JavaScriptCore/JSCJSValueCellInlines.h>
+#include <JavaScriptCore/JSCellInlines.h>
 #include <JavaScriptCore/SlotVisitorInlines.h>
 #include <JavaScriptCore/WeakInlines.h>
 #include <wtf/MainThread.h>

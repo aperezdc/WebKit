@@ -32,6 +32,7 @@
 #include "HTMLLabelElement.h"
 #include "HTMLTableCellElement.h"
 #include "RenderElementInlines.h"
+#include "RenderObjectStyle.h"
 #include "RenderStyle.h"
 #include <wtf/Scope.h>
 

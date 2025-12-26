@@ -40,6 +40,7 @@
 #include "CrossOriginPreflightResultCache.h"
 #include "DocumentInlines.h"
 #include "DocumentLoader.h"
+#include "DocumentPage.h"
 #include "DocumentResourceLoader.h"
 #include "DocumentView.h"
 #include "FrameDestructionObserverInlines.h"

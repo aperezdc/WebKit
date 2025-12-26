@@ -27,6 +27,7 @@
 
 #include "IDBCursorInfo.h"
 #include <wtf/RefCountedAndCanMakeWeakPtr.h>
+#include <wtf/WeakPtr.h>
 
 namespace WebCore {
 

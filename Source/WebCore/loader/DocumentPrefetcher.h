@@ -25,8 +25,10 @@
 
 #pragma once
 
+#include <WebCore/CachedRawResourceClient.h>
 #include <WebCore/CachedResourceClient.h>
 #include <WebCore/CachedResourceHandle.h>
+#include <WebCore/OriginAccessPatterns.h>
 #include <optional>
 #include <wtf/CompletionHandler.h>
 #include <wtf/Forward.h>

@@ -25,9 +25,15 @@
 
 #pragma once
 
+#include "GridTypeAliases.h"
+
 namespace WebCore {
 
 class LayoutUnit;
+
+namespace Style {
+struct GapGutter;
+}
 
 namespace Layout {
 

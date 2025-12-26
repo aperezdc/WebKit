@@ -43,7 +43,7 @@
 #include "HTTPStatusCodes.h"
 #include "InspectorNetworkAgent.h"
 #include "LinkLoader.h"
-#include "LocalFrame.h"
+#include "LocalFrameInlines.h"
 #include "Logging.h"
 #include "MemoryCache.h"
 #include "OriginAccessPatterns.h"

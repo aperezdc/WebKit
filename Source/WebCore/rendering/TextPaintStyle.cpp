@@ -27,6 +27,7 @@
 #include "TextPaintStyle.h"
 
 #include "ColorLuminance.h"
+#include "DocumentView.h"
 #include "FocusController.h"
 #include "GraphicsContext.h"
 #include "LocalFrame.h"

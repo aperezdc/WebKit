@@ -42,6 +42,7 @@
 #include "LocalFrameLoaderClient.h"
 #include "OriginAccessPatterns.h"
 #include "SecurityOrigin.h"
+#include "Settings.h"
 #include <wtf/NeverDestroyed.h>
 #include <wtf/SortedArrayMap.h>
 #include <wtf/TZoneMallocInlines.h>

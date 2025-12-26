@@ -44,7 +44,9 @@ std::unique_ptr<OpenXRHitTestManager> OpenXRHitTestManager::create(XrInstance in
 }
 
 OpenXRHitTestManager::OpenXRHitTestManager(XrInstance instance, XrSystemId systemId, XrSession session)
+#if defined(XR_ANDROID_trackables)
     : m_session(session)
+#endif
 {
 #if defined(XR_ANDROID_trackables) && defined(XR_ANDROID_raycast)
     uint32_t trackableTypeCapacity = 0;

@@ -32,8 +32,10 @@
 constexpr auto s_userHandPath { "/user/hand/"_s };
 constexpr auto s_inputGripPath { "/input/grip/pose"_s };
 constexpr auto s_inputAimPath { "/input/aim/pose"_s };
+#if defined(XR_EXT_hand_interaction)
 constexpr auto s_inputPinchPath { "/input/pinch_ext/pose"_s };
 constexpr auto s_inputPokePath { "/input/poke_ext/pose"_s };
+#endif
 
 namespace WebKit {
 

@@ -35,6 +35,7 @@
 #include "ContainerNodeInlines.h"
 #include "CSSPropertyNames.h"
 #include "CSSValueKeywords.h"
+#include "DocumentPage.h"
 #include "ElementInlines.h"
 #include "HTMLBRElement.h"
 #include "HTMLDivElement.h"

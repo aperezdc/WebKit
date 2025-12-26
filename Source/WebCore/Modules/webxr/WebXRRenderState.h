@@ -28,12 +28,12 @@
 #if ENABLE(WEBXR)
 
 #include "HTMLCanvasElement.h"
-#include "WebXRLayer.h"
-#include "WebXRWebGLLayer.h"
 #include "XRSessionMode.h"
 
 namespace WebCore {
 
+class WebXRLayer;
+class WebXRWebGLLayer;
 struct XRRenderStateInit;
 
 class WebXRRenderState : public RefCounted<WebXRRenderState> {
@@ -56,8 +56,8 @@ public:
     std::optional<double> inlineVerticalFieldOfView() const { return m_inlineVerticalFieldOfView; }
     void setInlineVerticalFieldOfView(double fieldOfView) { m_inlineVerticalFieldOfView = fieldOfView; }
 
-    RefPtr<WebXRWebGLLayer> baseLayer() const { return m_baseLayer; }
-    void setBaseLayer(WebXRWebGLLayer* baseLayer) { m_baseLayer = baseLayer; }
+    RefPtr<WebXRWebGLLayer> baseLayer() const;
+    void setBaseLayer(WebXRWebGLLayer*);
 
 #if ENABLE(WEBXR_LAYERS)
     const Vector<Ref<WebXRLayer>>& layers() const { return m_layers; }

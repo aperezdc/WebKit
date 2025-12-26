@@ -34,6 +34,10 @@ namespace WebCore {
 
 class RenderStyle;
 
+namespace Style {
+struct Difference;
+}
+
 namespace Layout {
 
 class Box;

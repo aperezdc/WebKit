@@ -37,8 +37,10 @@
 #include "RenderBlockFlow.h"
 #include "RenderBoxInlines.h"
 #include "RenderBoxModelObjectInlines.h"
+#include "RenderObjectInlines.h"
 #include "RenderStyle+GettersInlines.h"
 #include "RenderText.h"
+#include "Settings.h"
 #include <cmath>
 #include <wtf/MathExtras.h>
 #include <wtf/TZoneMallocInlines.h>

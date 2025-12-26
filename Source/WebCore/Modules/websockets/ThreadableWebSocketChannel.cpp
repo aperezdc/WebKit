@@ -37,6 +37,7 @@
 #include "DocumentPage.h"
 #include "DocumentQuirks.h"
 #include "DocumentSecurityOrigin.h"
+#include "FrameDestructionObserverInlines.h"
 #include "FrameLoader.h"
 #include "HTTPHeaderValues.h"
 #include "ScriptExecutionContext.h"

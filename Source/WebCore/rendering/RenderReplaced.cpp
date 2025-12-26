@@ -54,6 +54,7 @@
 #include "RenderLayoutState.h"
 #include "RenderObjectInlines.h"
 #include "RenderStyle+GettersInlines.h"
+#include "RenderStyle+SettersInlines.h"
 #include "RenderTheme.h"
 #include "RenderVideo.h"
 #include "RenderView.h"

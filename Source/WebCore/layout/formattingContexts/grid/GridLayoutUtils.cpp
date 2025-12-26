@@ -26,6 +26,12 @@
 #include "config.h"
 #include "GridLayoutUtils.h"
 
+#include "LayoutUnit.h"
+#include "PlacedGridItem.h"
+#include "StyleGapGutter.h"
+#include "StyleGridTrackSizes.h"
+#include "StylePrimitiveNumericTypes+Evaluation.h"
+
 namespace WebCore {
 namespace Layout {
 namespace GridLayoutUtils {

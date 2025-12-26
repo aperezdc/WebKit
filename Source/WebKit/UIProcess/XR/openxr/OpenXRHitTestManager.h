@@ -38,8 +38,8 @@ public:
     Vector<PlatformXR::FrameData::HitTestResult> requestHitTest(const PlatformXR::Ray&, XrSpace, XrTime);
 
 private:
-    XrSession m_session { XR_NULL_HANDLE };
 #if defined(XR_ANDROID_trackables)
+    XrSession m_session { XR_NULL_HANDLE };
     Vector<XrTrackableTrackerANDROID> m_trackableTrackers;
 #endif
 };

@@ -27,7 +27,7 @@
 #include "CSSRule.h"
 #include "CachedResource.h"
 #include "DOMTokenList.h"
-#include "Document.h"
+#include "DocumentPage.h"
 #include "Event.h"
 #include "EventNames.h"
 #include "EventSender.h"

@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include <WebCore/Color.h>
 #include <WebCore/RenderStyle.h>
 
 namespace WebCore {

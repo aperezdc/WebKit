@@ -27,6 +27,8 @@
 #include "Frame.h"
 
 #include "ContainerNodeInlines.h"
+#include "DocumentPage.h"
+#include "FrameInlines.h"
 #include "FrameLoader.h"
 #include "FrameLoaderClient.h"
 #include "HTMLFrameOwnerElement.h"

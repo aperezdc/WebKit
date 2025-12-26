@@ -35,6 +35,7 @@
 #include "DOMParser.h"
 #include "DocumentInlines.h"
 #include "DocumentLoader.h"
+#include "DocumentPage.h"
 #include "DocumentSVG.h"
 #include "DocumentView.h"
 #include "EditorClient.h"

@@ -29,6 +29,7 @@
 #include "BackForwardController.h"
 #include "CSSRuleList.h"
 #include "CSSStyleProperties.h"
+#include "DocumentPage.h"
 #include "DocumentSecurityOrigin.h"
 #include "DocumentView.h"
 #include "ExceptionOr.h"
@@ -53,8 +54,8 @@
 #include "dom/SandboxFlags.h"
 #include "page/RemoteFrame.h"
 #include <wtf/NeverDestroyed.h>
-#include <wtf/TypeCasts.h>
 #include <wtf/TZoneMallocInlines.h>
+#include <wtf/TypeCasts.h>
 
 namespace WebCore {
 

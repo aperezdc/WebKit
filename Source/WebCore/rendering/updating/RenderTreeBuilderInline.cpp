@@ -32,6 +32,7 @@
 #include "RenderChildIterator.h"
 #include "RenderInline.h"
 #include "RenderObjectInlines.h"
+#include "RenderStyle+SettersInlines.h"
 #include "RenderTable.h"
 #include "RenderTreeBuilderBlock.h"
 #include "RenderTreeBuilderMultiColumn.h"

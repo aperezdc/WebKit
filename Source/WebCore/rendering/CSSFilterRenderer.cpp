@@ -37,7 +37,7 @@
 #include "Logging.h"
 #include "ReferenceFilterOperation.h"
 #include "ReferencedSVGResources.h"
-#include "RenderElement.h"
+#include "RenderElementInlines.h"
 #include "RenderObjectInlines.h"
 #include "SVGFilterElement.h"
 #include "SVGFilterRenderer.h"

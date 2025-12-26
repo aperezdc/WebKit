@@ -34,6 +34,7 @@
 #include "PlacedGridItem.h"
 #include "RenderStyle+GettersInlines.h"
 #include "StyleGapGutter.h"
+#include "StyleGridTrackSizes.h"
 #include "StylePrimitiveNumeric.h"
 #include "UnplacedGridItem.h"
 #include "UsedTrackSizes.h"

@@ -29,6 +29,7 @@
 
 #pragma once
 
+#include "CertificateInfo.h"
 #include "InspectorResourceType.h"
 #include "SharedBuffer.h"
 #include "TextResourceDecoder.h"
@@ -40,7 +41,6 @@
 
 namespace WebCore {
 class CachedResource;
-class CertificateInfo;
 class ResourceResponse;
 
 class NetworkResourcesData {

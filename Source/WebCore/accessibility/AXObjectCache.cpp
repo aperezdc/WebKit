@@ -64,6 +64,7 @@
 #include "CustomElementDefaultARIA.h"
 #include "DeprecatedGlobalSettings.h"
 #include "DocumentPage.h"
+#include "DocumentView.h"
 #include "Editing.h"
 #include "Editor.h"
 #include "ElementAncestorIteratorInlines.h"

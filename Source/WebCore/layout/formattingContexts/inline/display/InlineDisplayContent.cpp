@@ -26,6 +26,8 @@
 #include "config.h"
 #include "InlineDisplayContent.h"
 
+#include "RenderStyle+GettersInlines.h"
+
 namespace WebCore {
 namespace InlineDisplay {
 

@@ -34,6 +34,7 @@
 #include "ContainerNodeInlines.h"
 #include "ElementInlines.h"
 #include "EventHandler.h"
+#include "FrameDestructionObserverInlines.h"
 #include "FrameLoader.h"
 #include "HTMLAnchorElement.h"
 #include "HTMLElement.h"

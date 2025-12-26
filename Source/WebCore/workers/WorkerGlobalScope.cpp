@@ -64,6 +64,7 @@
 #include "URLKeepingBlobAlive.h"
 #include "ViolationReportType.h"
 #include "WindowOrWorkerGlobalScopeTrustedTypes.h"
+#include "Worker.h"
 #include "WorkerClient.h"
 #include "WorkerFileSystemStorageConnection.h"
 #include "WorkerFontLoadRequest.h"

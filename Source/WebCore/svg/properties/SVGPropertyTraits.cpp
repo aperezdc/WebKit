@@ -30,6 +30,7 @@
 #include "CSSPropertyParserConsumer+ColorInlines.h"
 #include "ColorSerialization.h"
 #include "ContainerNodeInlines.h"
+#include "NodeDocument.h"
 #include "RenderElement.h"
 #include "RenderObjectStyle.h"
 #include "RenderStyle+GettersInlines.h"

@@ -29,6 +29,7 @@
 
 #include "ContextDestructionObserverInlines.h"
 #include "DocumentEventLoop.h"
+#include "DocumentPage.h"
 #include "HTMLPlugInElement.h"
 #include "InspectorInstrumentation.h"
 #include "Logging.h"

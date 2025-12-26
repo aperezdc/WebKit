@@ -31,6 +31,7 @@
 #include <WebCore/ChromeClient.h>
 #include <WebCore/CryptoClient.h>
 #include <WebCore/ExceptionOr.h>
+#include <WebCore/FocusOptions.h>
 #include <WebCore/PageIdentifier.h>
 #include <wtf/CompletionHandler.h>
 #include <wtf/Platform.h>
