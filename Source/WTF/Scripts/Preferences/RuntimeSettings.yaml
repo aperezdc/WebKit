@@ -1,0 +1,50 @@
+CairoPaintingThreads:
+  description: Number of Cairo painting threads
+  type: unsigned
+  default: 0
+  condition: USE(CAIRO)
+  # androidProperty: cairoPaintingThreads
+  environmentVariables:
+    # Explicitly setting environmentVariables overrides the automatically
+    # generated one. More than one can be listed and they will be checked
+    # in the given order.
+    - WEBKIT_CAIRO_PAINTING_THREADS
+    - WEBKIT_NICOSIA_PAINTING_THREADS
+
+SkiaMSAASampleCount:
+  type: unsigned
+  default: 0
+  condition: USE(SKIA)
+
+SkiaDynamicMSAAEnabled:
+  type: bool
+  default: false
+  condition: USE(SKIA)
+  environmentVariables:
+    - WEBKIT_SKIA_DYNAMIC_MSAA_ENABLED
+
+SourceDispatchSignpostsEnabled:
+  type: bool
+  default: false
+  condition: USE(SYSPROF_CAPTURE)
+  environmentVariables:
+    - WEBKIT_ENABLE_SOURCE_DISPATCH_SIGNPOSTS
+
+NumberOfProcessorsCores:
+  type: unsigned
+  environmentVariables:
+    - WTF_numberOfProcessorCores
+
+DesktopPortalsEnabled:
+  type: bool
+  default: true
+  environmentVariables:
+    - WEBKIT_USE_PORTAL
+
+InspectorResourcesPath:
+  condition: PLATFORM(WPE)
+
+JavaScriptCoreGarbageCollectionSignal:
+  type: unsigned
+  environmentVariables:
+    - JSC_SIGNAL_FOR_GC

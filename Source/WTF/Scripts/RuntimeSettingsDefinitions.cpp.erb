@@ -1,0 +1,59 @@
+#include "RuntimeSettingsDefinitions.h"
+
+#include <wtf/text/ParsingUtilities.h>
+
+namespace WTF {
+
+static CStringView readEnvironmentVariables(const std::span<ASCIILiteral>& variableNames)
+{
+    for (const auto& name : variableNames) {
+        if (const char value = CStringView(getenv(name)))
+            return value;
+    }
+    return CStringView();
+}
+
+static std::optional<String> parseString(const CStringView& rawValue)
+{
+}
+
+static std::optional<bool> parseBool(const CStringView& rawValue)
+{
+    auto valueSpan = rawValue.span();
+    skipWhile<isUnicodeCompatibleASCIIWhitespace>(valueSpan);
+}
+
+RuntimeSettings::RuntimeSettings()
+{
+<%- for condition in allConditions -%>
+<%-   if condition -%>
+#if <%= condition %>
+<%-   end -%>
+<%-   for setting in settings.lazy.filter { |s| s.condition == condition } -%>
+        // <%= setting.name %>
+<%-     if setting.defaultValue -%>
+        m_<%= setting.nameLower %>.set(<%= setting.defaultValue %>, RuntimeSetting::State::Defaulted);
+<%-     end -%>
+#if OS(ANDROID)
+        if (auto rawValue = readAndroidProperty("<%= setting.androidProperty %>"_s)) {
+            if (auto parsedValue = parse<%= setting.typeUpper %>(*rawValue))
+                m_<%= setting.nameLower %>.set(*parsedValue, RuntimeSetting::State::Defined);
+        }
+#endif
+        static constexpr auto <%= setting.nameLower %>EnvironmentVariableNames[] = {
+            <%- for name in setting.environmentVariables -%>
+            "<%= name %>"_s,
+            <%- end -%>
+        };
+        if (auto rawValue = readEnvironmentVariables(span(<%= setting.nameLower %>EnvironmentVariableNames))) {
+            if (auto parsedValue = parse<%= setting.typeUpper %>(*rawValue))
+                m_<%= setting.nameLower %>.set(*parsedValue, RuntimeSetting::State::Defined);
+        }
+<%-   end -%>
+<%-   if condition -%>
+#endif
+<%-   end -%>
+<%- end -%>
+}
+
+} // namespace WTF

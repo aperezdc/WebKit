@@ -1,0 +1,42 @@
+/*
+ * <%= warning %>
+ */
+#pragma once
+
+#include <wtf/text/WTFString.h>
+
+namespace WTF {
+
+struct RuntimeSettings
+{
+public:
+<%- for condition in allConditions -%>
+<%-  if !condition.nil? -%>
+#if <%= condition %>
+<%-   end -%>
+<%-   for setting in settings.lazy.filter { |s| s.condition == condition } -%>
+    std::optional<<%= setting.type %>> <%= setting.nameLower %>() const { m_<%= setting.nameLower %>; }
+    void set<%= setting.name %>(const <%= setting.type %>& newValue) { m_<%= setting.nameLower %>.reset(newValue); }
+<%-   end -%>
+<%-  if !condition.nil? -%>
+#endif
+<%-   end -%>
+<%- end -%>
+
+private:
+    RuntimeSettings();
+
+<%- for condition in allConditions -%>
+<%-  if !condition.nil? -%>
+#if <%= condition %>
+<%-   end -%>
+<%-   for setting in settings.lazy.filter { |s| s.condition == condition } -%>
+    std::optional<<%= setting.type %>> m_<%= setting.nameLower %>;
+<%-   end -%>
+<%-  if !condition.nil? -%>
+#endif
+<%-   end -%>
+<%- end -%>
+};
+
+} // namespace WTF
