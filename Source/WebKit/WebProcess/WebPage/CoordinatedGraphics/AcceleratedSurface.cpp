@@ -289,8 +289,24 @@ std::unique_ptr<AcceleratedSurface::RenderTarget> AcceleratedSurface::RenderTarg
 #endif // USE(GBM)
 #endif
 
-#if USE(GBM)
+#if USE(GBM) || USE(VULKAN)
 std::unique_ptr<AcceleratedSurface::RenderTarget> AcceleratedSurface::RenderTargetEGLImage::create(AcceleratedSurface& surface, const IntSize& size, const BufferFormat& bufferFormat)
+{
+#if USE(VULKAN)
+    if (auto* device [[maybe_unused]] = Vulkan::Device::sharedDeviceIfExists())
+        if (auto vulkanRenderTarget = create(VulkanAllocation, surface, size, bufferFormat))
+            return vulkanRenderTarget;
+#endif
+
+#if USE(GBM)
+    return create(GBMAllocation, surface, size, bufferFormat);
+#endif
+}
+#endif // USE(GBM) || USE(VULKAN)
+
+#if USE(GBM)
+std::unique_ptr<AcceleratedSurface::RenderTarget> AcceleratedSurface::RenderTargetEGLImage::create(
+        AcceleratedSurface::RenderTargetEGLImage::GBMAllocationTag, AcceleratedSurface& surface, const IntSize& size, const BufferFormat& bufferFormat)
 {
     if (!bufferFormat.fourcc) {
         WTFLogAlways("Failed to create GBM buffer of size %dx%d: no valid format found", size.width(), size.height());

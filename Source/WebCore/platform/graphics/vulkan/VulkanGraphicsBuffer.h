@@ -27,6 +27,7 @@
 
 #if USE(VULKAN)
 #include "VulkanTypes.h"
+#include "IntSize.h"
 #include <wtf/ArgumentCoder.h>
 #include <wtf/unix/UnixFileDescriptor.h>
 

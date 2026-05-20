@@ -314,6 +314,14 @@ private:
 #if USE(GBM)
         static std::unique_ptr<RenderTarget> create(AcceleratedSurface&, const WebCore::IntSize&, const BufferFormat&);
         RenderTargetEGLImage(AcceleratedSurface&, const WebCore::IntSize&, EGLImage, WebCore::DMABufBufferAttributes&&, RendererBufferFormat::Usage);
+#if USE(GBM)
+        enum GBMAllocationTag { GBMAllocation };
+        static std::unique_ptr<RenderTarget> create(GBMAllocationTag, AcceleratedSurface&, const WebCore::IntSize&, const BufferFormat&);
+#endif
+#if USE(VULKAN)
+        enum VulkanAllocationTag { VulkanAllocation };
+        static std::unique_ptr<RenderTarget> create(VulkanAllocationTag, AcceleratedSurface&, const WebCore::IntSize&, const BufferFormat&);
+#endif
 #endif
 #if OS(ANDROID)
         RenderTargetEGLImage(AcceleratedSurface&, const WebCore::IntSize&, EGLImage, RefPtr<AHardwareBuffer>&&);

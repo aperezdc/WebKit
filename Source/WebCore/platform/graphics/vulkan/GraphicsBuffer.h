@@ -26,40 +26,42 @@
 #pragma once
 
 #if USE(VULKAN)
-#include "FourCC.h"
 #include "VulkanTypes.h"
 
 namespace WebCore {
-
-class BufferFormat;
-class IntSize;
-
 namespace Vulkan {
 
-[[nodiscard]] const char* resultString(VkResult);
-
-template <typename Type>
-[[nodiscard]] const char* resultString(const Result<Type>& result)
+struct GraphicsBuffer
 {
-    return resultString(result.error_or(VK_SUCCESS));
-}
+    WTF_MAKE_NONCOPYABLE(GraphicsBuffer);
 
-void initializeIfNeeded();
+public:
+    [[nodiscard]] static Result<GraphicsBuffer> create(const IntSize&, const FourCC&, const std::span<const uint64_t> modifiers);
 
-// Returns VK_FORMAT_UNDEFINED when there is no equivalent value in Vulkan.
-VkFormat toVulkanFormat(const FourCC);
+    GraphicsBuffer(GraphicsBuffer&&) = default;
+    GraphicsBuffer& operator=(GraphicsBuffer&&) = default;
 
-// Returns VK_FORMAT_UNDEFINED when there is no equivalent value in Vulkan.
-VkFormat toVulkanFormat(const FourCC);
-std::optional<std::pair<unsigned, unsigned>> toGLFormat(VkFormat);
+    const Image& image() const LIFETIME_BOUND { return m_image; }
+    const DeviceMemory& memory() const LIFETIME_BOUND { return m_memory; }
+    size_t allocatedSize() const { return m_allocatedSize; }
+    bool dedicatedAllocation() const { return m_dedicatedAllocation; }
+
+private:
+    GraphicsBuffer(Image&& image, DeviceMemory&& memory, size_t allocatedSize, bool dedicatedAllocation)
+        : m_image(WTF::move(image))
+        , m_memory(WTF::move(memory))
+        , m_allocatedSize(allocatedSize)
+        , m_dedicatedAllocation(dedicatedAllocation)
+    {
+    }
+
+    Image m_image;
+    DeviceMemory m_memory;
+    size_t m_allocatedSize;
+    bool m_dedicatedAllocation;
+};
 
 } // namespace Vulkan
 } // namespace WebCore
-
-namespace WTF {
-
-template<> WEBCORE_EXPORT bool isValidEnum<VkFormat>(std::underlying_type_t<VkFormat>);
-
-} // namespace WTF
 
 #endif // USE(VULKAN)

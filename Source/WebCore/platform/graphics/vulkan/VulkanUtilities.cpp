@@ -48,6 +48,12 @@
 #include <drm_fourcc.h>
 #endif
 
+#if OS(ANDROID)
+#include <drm/drm_fourcc.h>
+#elif USE(GBM)
+#include <drm_fourcc.h>
+#endif
+
 #ifndef VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME
 #define VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME "VK_KHR_external_memory_capabilities"
 #endif
