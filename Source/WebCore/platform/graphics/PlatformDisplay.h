@@ -98,7 +98,7 @@ public:
 
     EGLImage createEGLImage(EGLContext, EGLenum target, EGLClientBuffer, const Vector<EGLAttrib>&) const;
     bool destroyEGLImage(EGLImage) const;
-#if USE(GBM) || OS(ANDROID)
+#if USE(GBM) || USE(VULKAN) || OS(ANDROID)
     const Vector<GLDisplay::BufferFormat>& bufferFormats();
 #endif
 #if USE(GBM) && USE(GSTREAMER)

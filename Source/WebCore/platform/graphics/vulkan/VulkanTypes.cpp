@@ -28,6 +28,7 @@
 
 #if USE(VULKAN)
 #include "GLContext.h"
+#include "IntSize.h"
 #include "Logging.h"
 #include "PlatformDisplay.h"
 #include "VulkanUtilities.h"
@@ -86,11 +87,6 @@ std::span<const uint8_t> PhysicalDeviceIDProperties::driverUUID() const
     return unsafeMakeSpan(value().driverUUID, VK_UUID_SIZE);
 }
 
-void PhysicalDevice::fillProperties(PhysicalDeviceProperties& properties) const
-{
-    vkGetPhysicalDeviceProperties2(ptr(), properties.ptr());
-}
-
 Vector<QueueFamilyProperties> PhysicalDevice::queueFamilies() const
 {
     uint32_t queueFamilyCount;
@@ -121,8 +117,9 @@ DeviceCreateInfo::DeviceCreateInfo(const DeviceQueueCreateInfo& queueCreateInfo,
     value().ppEnabledExtensionNames = enabledExtensions.data();
 }
 
-Device::Device(VkDevice device)
+Device::Device(VkDevice device, const PhysicalDevice& physicalDevice)
     : Base(device)
+    , m_physicalDevice(physicalDevice)
 {
     if (VkDevice device = ptr())
         volkLoadDeviceTable(&m_table, device);
@@ -136,13 +133,13 @@ Device::~Device()
     }
 }
 
-Result<Device> Device::create(PhysicalDevice& deviceInfo, const DeviceCreateInfo& creationInfo)
+Result<Device> Device::create(const PhysicalDevice& deviceInfo, const DeviceCreateInfo& creationInfo)
 {
     VkDevice device;
     if (auto result = vkCreateDevice(deviceInfo.ptr(), creationInfo.ptr(), nullptr, &device); result != VK_SUCCESS)
         return makeUnexpected(result);
 
-    return Device(device);
+    return Device(device, deviceInfo);
 }
 
 Device Device::s_sharedDevice { nullptr };
@@ -163,6 +160,52 @@ Device& Device::sharedDevice()
     RELEASE_ASSERT_WITH_MESSAGE(s_sharedDevice, "Attempted to use Vulkan shared device before its initialization");
     return s_sharedDevice;
 }
+
+std::optional<uint32_t> Device::findMemoryTypeIndex(const MemoryRequirements& memRequirements, VkMemoryPropertyFlags propertyFlags) const
+{
+    PhysicalDeviceMemoryProperties deviceMemProperties;
+    m_physicalDevice.fillMemoryProperties(deviceMemProperties);
+
+    const auto memTypes = deviceMemProperties.memoryTypes();
+    for (uint32_t index = 0; index < memTypes.size(); ++index) {
+        if ((memRequirements->memoryTypeBits & (1 << index)) && (memTypes[index].propertyFlags & propertyFlags) == propertyFlags)
+            return index;
+    }
+
+    return { };
+}
+
+Result<DeviceMemory> Device::allocateExternalMemory(const MemoryRequirements& memRequirements, const Image& image, VkExternalMemoryHandleTypeFlags handleType) const
+{
+    auto memoryTypeIndex = findMemoryTypeIndex(memRequirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    if (!memoryTypeIndex)
+        return makeUnexpected(VK_ERROR_OUT_OF_DEVICE_MEMORY);
+
+    RELEASE_LOG_DEBUG(Vulkan, "Allocating %zu bytes from heap %" PRIu32 " of external memory for image %p", memRequirements->size, *memoryTypeIndex, image.ptr());
+
+    MemoryAllocateInfo allocateInfo(memRequirements->size, *memoryTypeIndex);
+    auto dedicatedMemoryInfo = allocateInfo.next<MemoryDedicatedAllocateInfo>(image);
+    auto exportAllocateInfo [[maybe_unused]] = dedicatedMemoryInfo.next<ExportMemoryAllocateInfo>(handleType);
+
+    return allocateMemory(allocateInfo);
+}
+
+#ifdef VK_KHR_external_memory_fd
+Result<UnixFileDescriptor> Device::getMemoryFileDescriptor(const DeviceMemory& memory, VkExternalMemoryHandleTypeFlagBits handleType) const
+{
+    int fd = -1;
+    MemoryGetFdInfo memGetFdInfo(memory, handleType);
+    if (auto result = m_table.vkGetMemoryFdKHR(ptr(), memGetFdInfo.ptr(), &fd); result != VK_SUCCESS)
+        return makeUnexpected(result);
+
+    return UnixFileDescriptor(fd, UnixFileDescriptor::Adopt);
+}
+
+Result<UnixFileDescriptor> DeviceMemory::getFileDescriptor(VkExternalMemoryHandleTypeFlagBits handleType) const
+{
+    return Device::sharedDevice().getMemoryFileDescriptor(*this, handleType);
+}
+#endif // VK_KHR_external_memory_fd
 
 const Vector<VkLayerProperties>& Instance::availableLayers()
 {
@@ -561,6 +604,73 @@ VkResult Instance::installDebugMessenger() const
     return VK_ERROR_EXTENSION_NOT_PRESENT;
 }
 #endif // VK_EXT_debug_utils
+
+DeviceMemory::~DeviceMemory()
+{
+    Device::sharedDevice().freeMemory(*this);
+}
+
+ImageMemoryRequirementsInfo::ImageMemoryRequirementsInfo(const Image& image)
+{
+    ptr()->image = image.ptr();
+}
+
+MemoryDedicatedAllocateInfo::MemoryDedicatedAllocateInfo(const Image& image)
+    : MemoryDedicatedAllocateInfo(image.ptr(), VK_NULL_HANDLE)
+{
+}
+
+MemoryDedicatedAllocateInfo::MemoryDedicatedAllocateInfo(VkImage image, VkBuffer buffer)
+{
+    ptr()->image = image;
+    ptr()->buffer = buffer;
+}
+
+#if 0
+Result<std::pair<Image, DeviceMemory>> Image::create(const IntSize& size, const FourCC& fourcc, const std::span<const uint64_t> modifiers)
+{
+    PhysicalDeviceImageFormatInfo devImageFormatInfo;
+    devImageFormatInfo->type = VK_IMAGE_TYPE_2D;
+    devImageFormatInfo->tiling = VK_IMAGE_TILING_OPTIMAL;
+    devImageFormatInfo->usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    devImageFormatInfo->format = format;
+
+#if defined(VK_EXT_image_drm_format_modifier)
+    devImageFormatInfo->tiling = VK_IMAGE_TILING_DRM_FORMAT_MODIFIER_EXT;
+    [[maybe_unused]] devImageDrmFormatInfo = devImageFormatInfo.next<PhysicalDeviceImageDrmFormatModifierInfo>();
+    devImageDrmFormatInfo->
+#endif
+
+#if defined(VK_EXT_image_drm_format_modifier) && 0
+    externalMemoryInfo->handleTypes |= VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
+    [[maybe_unused]] ImageDrmFormatModifierListCreateInfo drmModifiers;
+    if (modifiers.size()) {
+        createInfo->tiling = VK_IMAGE_TILING_DRM_FORMAT_MODIFIER_EXT;
+        drmModifiers = externalMemoryInfo.next<ImageDrmFormatModifierListCreateInfo>(modifiers);
+    }
+#else
+    UNUSED_PARAM(modifiers);
+#endif
+
+    return std::pair { WTF::move(*image), WTF::move(*deviceMemory) };
+}
+#endif
+
+Result<Image> Image::create(const ImageCreateInfo& creationInfo)
+{
+    return Device::sharedDevice().createImage(creationInfo);
+}
+
+Image::~Image()
+{
+    Device::sharedDevice().destroyImage(*this);
+}
+
+void Image::fillMemoryRequirements(MemoryRequirements& memRequirements)
+{
+    ImageMemoryRequirementsInfo imageMemRequirements(*this);
+    Device::sharedDevice().getImageMemoryRequirements(imageMemRequirements, memRequirements);
+}
 
 } // namespace Vulkan
 } // namespace WebCore

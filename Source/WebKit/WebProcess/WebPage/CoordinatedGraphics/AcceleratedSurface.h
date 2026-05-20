@@ -262,7 +262,7 @@ private:
         UnixFileDescriptor m_releaseFenceFD;
     };
 
-#if USE(GBM) || OS(ANDROID)
+#if USE(GBM) || USE(VULKAN) || OS(ANDROID)
     struct BufferFormat {
         BufferFormat() = default;
         BufferFormat(const BufferFormat&) = delete;
@@ -305,9 +305,17 @@ private:
 
     class RenderTargetEGLImage final : public RenderTargetShareableBuffer {
     public:
+#if USE(GBM) || USE(VULKAN)
         static std::unique_ptr<RenderTarget> create(AcceleratedSurface&, const WebCore::IntSize&, const BufferFormat&);
-#if USE(GBM)
         RenderTargetEGLImage(AcceleratedSurface&, const WebCore::IntSize&, EGLImage, WebCore::DMABufBufferAttributes&&, RendererBufferFormat::Usage);
+#if USE(GBM)
+        enum GBMAllocationTag { GBMAllocation };
+        static std::unique_ptr<RenderTarget> create(GBMAllocationTag, AcceleratedSurface&, const WebCore::IntSize&, const BufferFormat&);
+#endif
+#if USE(VULKAN)
+        enum VulkanAllocationTag { VulkanAllocation };
+        static std::unique_ptr<RenderTarget> create(VulkanAllocationTag, AcceleratedSurface&, const WebCore::IntSize&, const BufferFormat&);
+#endif
 #endif
 #if OS(ANDROID)
         RenderTargetEGLImage(AcceleratedSurface&, const WebCore::IntSize&, EGLImage, RefPtr<AHardwareBuffer>&&);
@@ -319,7 +327,7 @@ private:
 
         EGLImage m_image { nullptr };
     };
-#endif // USE(GBM) || OS(ANDROID)
+#endif // USE(GBM) || USE(VULKAN) || OS(ANDROID)
 
     class RenderTargetSHMImage final : public RenderTargetShareableBuffer {
     public:

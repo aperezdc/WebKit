@@ -27,6 +27,7 @@
 #include "AcceleratedSurface.h"
 
 #if USE(COORDINATED_GRAPHICS)
+#include "Logging.h"
 #include "WebPage.h"
 #include "WebProcess.h"
 #include <WebCore/BitmapTexture.h>
@@ -70,6 +71,11 @@ WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_END
 #include <WebCore/DRMDeviceManager.h>
 #include <WebCore/GBMVersioning.h>
 #include <drm_fourcc.h>
+#endif
+
+#if USE(VULKAN)
+#include <WebCore/GraphicsBuffer.h>
+#include <WebCore/VulkanUtilities.h>
 #endif
 
 #if USE(WPE_RENDERER)
@@ -266,8 +272,24 @@ void AcceleratedSurface::RenderTargetShareableBuffer::setReleaseFenceFD(UnixFile
     m_releaseFenceFD = WTF::move(releaseFence);
 }
 
-#if USE(GBM)
+#if USE(GBM) || USE(VULKAN)
 std::unique_ptr<AcceleratedSurface::RenderTarget> AcceleratedSurface::RenderTargetEGLImage::create(AcceleratedSurface& surface, const IntSize& size, const BufferFormat& bufferFormat)
+{
+#if USE(VULKAN)
+    if (auto* device [[maybe_unused]] = Vulkan::Device::sharedDeviceIfExists())
+        if (auto vulkanRenderTarget = create(VulkanAllocation, surface, size, bufferFormat))
+            return vulkanRenderTarget;
+#endif
+
+#if USE(GBM)
+    return create(GBMAllocation, surface, size, bufferFormat);
+#endif
+}
+#endif // USE(GBM) || USE(VULKAN)
+
+#if USE(GBM)
+std::unique_ptr<AcceleratedSurface::RenderTarget> AcceleratedSurface::RenderTargetEGLImage::create(
+        AcceleratedSurface::RenderTargetEGLImage::GBMAllocationTag, AcceleratedSurface& surface, const IntSize& size, const BufferFormat& bufferFormat)
 {
     if (!bufferFormat.fourcc) {
         WTFLogAlways("Failed to create GBM buffer of size %dx%d: no valid format found", size.width(), size.height());
@@ -328,6 +350,37 @@ AcceleratedSurface::RenderTargetEGLImage::RenderTargetEGLImage(AcceleratedSurfac
     WebProcess::singleton().parentProcessConnection()->send(Messages::AcceleratedBackingStore::DidCreateDMABufBuffer(m_id, WTF::move(dmaBufAttributes), usage), m_surface->surfaceID());
 }
 #endif // USE(GBM)
+
+#if USE(VULKAN)
+std::unique_ptr<AcceleratedSurface::RenderTarget> AcceleratedSurface::RenderTargetEGLImage::create(
+        AcceleratedSurface::RenderTargetEGLImage::VulkanAllocationTag, AcceleratedSurface& surface, const IntSize& size, const BufferFormat& bufferFormat)
+{
+    const std::span<const uint64_t> modifiers =
+        (bufferFormat.modifiers.size() == 1 && bufferFormat.modifiers[0] != DRM_FORMAT_MOD_INVALID) ? std::span<uint64_t> { } : bufferFormat.modifiers.span();
+
+    auto buffer = Vulkan::GraphicsBuffer::create(size, bufferFormat.fourcc, modifiers);
+    if (!buffer) {
+        RELEASE_LOG(Vulkan, "Could not create Vulkan::Image for render target: %s (%d)", Vulkan::resultString(buffer.error()), buffer.error());
+        return nullptr;
+    }
+
+    auto memoryFd = buffer->memory().getFileDescriptor(VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT);
+    if (!memoryFd) {
+        RELEASE_LOG(Vulkan, "Could not get Vulkan::DeviceMemory file descriptor for the image: %s (%d)", Vulkan::resultString(memoryFd.error()), memoryFd.error());
+        return nullptr;
+    }
+
+    GLuint memoryObject = 0;
+    GLint dedicated = buffer->dedicatedAllocation() ? GL_TRUE : GL_FALSE;
+    glCreateMemoryObjectsEXT(1, &memoryObject);
+    glMemoryObjectParameterivEXT(memoryObject, GL_DEDICATED_MEMORY_OBJECT_EXT, &dedicated);
+    glImportMemoryFdEXT(memoryObject, buffer->allocatedSize(), GL_HANDLE_TYPE_OPAQUE_FD_EXT, memoryFd->value());
+    if (!glIsMemoryObjectEXT(memoryObject) || glGetError() != GL_NO_ERROR)
+        return nullptr;
+
+    memoryFd->release();  // At this point GL has taken ownership of the file descriptor.
+}
+#endif // USE(VULKAN)
 
 #if OS(ANDROID)
 static uint64_t usageToAHardwareBufferUsage(RendererBufferFormat::Usage usage)
@@ -646,7 +699,7 @@ AcceleratedSurface::SwapChain::SwapChain(AcceleratedSurface& surface)
     }
 }
 
-#if (PLATFORM(GTK) || ENABLE(WPE_PLATFORM)) && (USE(GBM) || OS(ANDROID))
+#if (PLATFORM(GTK) || ENABLE(WPE_PLATFORM)) && (USE(GBM) || USE(VULKAN) || OS(ANDROID))
 void AcceleratedSurface::SwapChain::setupBufferFormat()
 {
     if (m_type != Type::EGLImage)
@@ -725,7 +778,7 @@ void AcceleratedSurface::SwapChain::setupBufferFormat()
     m_bufferFormat = WTF::move(newBufferFormat);
     m_bufferFormatChanged = true;
 }
-#endif // USE(GBM) || OS(ANDROID)
+#endif // (PLATFORM(GTK) || ENABLE(WPE_PLATFORM)) && (USE(GBM) || USE(VULKAN) || OS(ANDROID))
 
 bool AcceleratedSurface::SwapChain::resize(const IntSize& size)
 {

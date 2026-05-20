@@ -171,12 +171,12 @@ bool PlatformDisplay::destroyEGLImage(EGLImage image) const
     return m_eglDisplay->destroyImage(image);
 }
 
-#if USE(GBM) || OS(ANDROID)
+#if USE(GBM) || USE(VULKAN) || OS(ANDROID)
 const Vector<GLDisplay::BufferFormat>& PlatformDisplay::bufferFormats()
 {
     return m_eglDisplay->bufferFormats();
 }
-#endif // USE(GBM) || OS(ANDROID)
+#endif // USE(GBM) || USE(VULKAN) || OS(ANDROID)
 
 #if USE(GBM) && USE(GSTREAMER)
 const Vector<GLDisplay::BufferFormat>& PlatformDisplay::bufferFormatsForVideo()

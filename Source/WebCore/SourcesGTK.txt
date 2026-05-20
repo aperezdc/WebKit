@@ -89,6 +89,7 @@ platform/graphics/glib/SystemFontDatabaseGLib.cpp
 
 platform/graphics/opentype/OpenTypeVerticalData.cpp
 
+platform/graphics/vulkan/GraphicsBuffer.cpp
 platform/graphics/vulkan/VulkanTypes.cpp
 platform/graphics/vulkan/VulkanUtilities.cpp
 

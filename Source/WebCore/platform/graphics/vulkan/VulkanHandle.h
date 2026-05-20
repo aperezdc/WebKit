@@ -85,6 +85,13 @@ private:
     VulkanType m_ptr { nullptr };
 };
 
+#define VULKAN_DEFINE_HANDLE_METHODS(name) \
+    public: \
+        name(name&& other) { swap(other); } \
+        name& operator=(name&& other) { swap(other); return *this; } \
+    private: \
+        using Base::Base
+
 //
 // Borrowed handles do not "own" the object, therefore they can be copied.
 // The main goal is to provide a similar API surface to Handle<T> and to

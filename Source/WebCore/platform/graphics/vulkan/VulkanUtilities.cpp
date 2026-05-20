@@ -41,6 +41,12 @@
 #include "ApplicationGLib.h"
 #endif
 
+#if OS(ANDROID)
+#include <drm/drm_fourcc.h>
+#elif USE(GBM)
+#include <drm_fourcc.h>
+#endif
+
 #ifndef VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME
 #define VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME "VK_KHR_external_memory_capabilities"
 #endif
@@ -286,6 +292,31 @@ void initializeIfNeeded()
 
     Instance::setSharedInstance(WTF::move(*instance));
     Device::setSharedDevice(WTF::move(*device));
+}
+
+VkFormat toVulkanFormat(const FourCC fourcc)
+{
+    switch (fourcc.value) {
+    case DRM_FORMAT_RGBA8888:
+    case DRM_FORMAT_RGBX8888:
+        return VK_FORMAT_A8B8G8R8_UNORM_PACK32;
+    case DRM_FORMAT_ABGR8888:
+    case DRM_FORMAT_XBGR8888:
+        return VK_FORMAT_R8G8B8A8_UNORM;
+    case DRM_FORMAT_XRGB8888:
+    case DRM_FORMAT_ARGB8888:
+        return VK_FORMAT_B8G8R8A8_UNORM;
+    case DRM_FORMAT_BGR888:
+        return VK_FORMAT_R8G8B8_UNORM;
+    case DRM_FORMAT_RGB565:
+        return VK_FORMAT_R5G6B5_UNORM_PACK16;
+    case DRM_FORMAT_ABGR16161616F:
+        return VK_FORMAT_R16G16B16A16_SFLOAT;
+    case DRM_FORMAT_ABGR2101010:
+        return VK_FORMAT_A2B10G10R10_UNORM_PACK32;
+    default:
+        return VK_FORMAT_UNDEFINED;
+    }
 }
 
 } // namespace Vulkan
