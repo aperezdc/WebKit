@@ -43,13 +43,15 @@ public:
 
     const Image& image() const LIFETIME_BOUND { return m_image; }
     const DeviceMemory& memory() const LIFETIME_BOUND { return m_memory; }
+    VkFormat format() const { return m_format; }
     size_t allocatedSize() const { return m_allocatedSize; }
     bool dedicatedAllocation() const { return m_dedicatedAllocation; }
 
 private:
-    GraphicsBuffer(Image&& image, DeviceMemory&& memory, size_t allocatedSize, bool dedicatedAllocation)
+    GraphicsBuffer(Image&& image, DeviceMemory&& memory, VkFormat format, size_t allocatedSize, bool dedicatedAllocation)
         : m_image(WTF::move(image))
         , m_memory(WTF::move(memory))
+        , m_format(format)
         , m_allocatedSize(allocatedSize)
         , m_dedicatedAllocation(dedicatedAllocation)
     {
@@ -57,6 +59,7 @@ private:
 
     Image m_image;
     DeviceMemory m_memory;
+    VkFormat m_format;
     size_t m_allocatedSize;
     bool m_dedicatedAllocation;
 };

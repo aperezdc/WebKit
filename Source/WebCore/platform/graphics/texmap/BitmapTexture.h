@@ -41,6 +41,10 @@
 #include "MemoryMappedGPUBuffer.h"
 #endif
 
+#if USE(VULKAN)
+#include "VulkanGraphicsBuffer.h"
+#endif
+
 #if USE(SKIA)
 WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_BEGIN
 #include <skia/core/SkRefCnt.h>
@@ -87,6 +91,10 @@ public:
     }
 #endif
 
+#if USE(VULKAN)
+    static Vulkan::Result<Ref<BitmapTexture>> create(Vulkan::GraphicsBuffer& buffer, const IntSize& size, OptionSet<Flags> flags = { });
+#endif
+
     WEBCORE_EXPORT ~BitmapTexture();
 
     const IntSize& size() const { return m_size; };
@@ -131,6 +139,9 @@ private:
     BitmapTexture(const IntSize&, OptionSet<Flags>);
 #if USE(GBM) || OS(ANDROID)
     BitmapTexture(EGLImage, const IntSize&, OptionSet<Flags>);
+#endif
+#if USE(VULKAN)
+    BitmapTexture(const Vulkan::GraphicsBuffer& buffer, GLuint memoryObject, const IntSize&, OptionSet<Flags>);
 #endif
 
     void clearIfNeeded();

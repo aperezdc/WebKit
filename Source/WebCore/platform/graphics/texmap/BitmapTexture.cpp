@@ -54,6 +54,10 @@ WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_BEGIN // GLib/Win port
 WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_END
 #endif
 
+#if USE(VULKAN)
+#include "VulkanUtilities.h"
+#endif
+
 #if OS(DARWIN)
 #define GL_UNSIGNED_INT_8_8_8_8_REV 0x8367
 static const GLenum s_pixelDataType = GL_UNSIGNED_INT_8_8_8_8_REV;
@@ -217,6 +221,26 @@ BitmapTexture::BitmapTexture(EGLImage image, const IntSize& size, OptionSet<Flag
     glBindTexture(m_renderTarget, boundTexture);
 }
 #endif
+
+#if USE(VULKAN)
+BitmapTexture::BitmapTexture(const Vulkan::GraphicsBuffer& buffer, GLuint memoryObject, const IntSize& size, OptionSet<Flags> flags)
+    : m_flags(flags)
+    , m_size(size)
+{
+    determineRenderTargetAndBinding();
+
+    GLint boundTexture = 0;
+    glGetIntegerv(m_binding, &boundTexture);
+
+    createTexture();
+    glTexParameteri(m_renderTarget, GL_TEXTURE_TILING_EXT, GL_OPTIMAL_TILING_EXT);
+    const auto glFormat = Vulkan::toGLFormat(buffer.format());
+    RELEASE_ASSERT(glFormat);
+    glTexStorageMem2DEXT(m_renderTarget, 1, glFormat->second, size.width(), size.height(), memoryObject, 0);
+
+    glBindTexture(m_renderTarget, boundTexture);
+}
+#endif // USE(VULKAN)
 
 void BitmapTexture::swapTexture(BitmapTexture& other)
 {

@@ -24,7 +24,7 @@
  */
 
 #include "config.h"
-#include "GraphicsBuffer.h"
+#include "VulkanGraphicsBuffer.h"
 
 #if USE(VULKAN)
 #include "FourCC.h"
@@ -89,7 +89,7 @@ Result<GraphicsBuffer> GraphicsBuffer::create(const IntSize& size, const FourCC&
     if (auto result = device.bindImageMemory(*image, *deviceMemory); result != VK_SUCCESS)
         return makeUnexpected(result);
 
-    return GraphicsBuffer(WTF::move(*image), WTF::move(*deviceMemory), memRequirements->size, memDedicatedRequirements->requiresDedicatedAllocation);
+    return GraphicsBuffer(WTF::move(*image), WTF::move(*deviceMemory), format, memRequirements->size, memDedicatedRequirements->requiresDedicatedAllocation);
 }
 
 } // namespace Vulkan

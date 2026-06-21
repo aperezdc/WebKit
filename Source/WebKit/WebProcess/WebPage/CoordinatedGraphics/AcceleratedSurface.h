@@ -55,6 +55,10 @@ WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_END
 struct gbm_bo;
 #endif
 
+#if USE(VULKAN)
+#include <WebCore/VulkanGraphicsBuffer.h>
+#endif
+
 #if OS(ANDROID)
 typedef struct AHardwareBuffer AHardwareBuffer;
 #endif
@@ -302,20 +306,14 @@ private:
         RefPtr<WebCore::GBMDevice> gbmDevice;
 #endif
     };
+#endif // USE(GBM) || USE(VULKAN) || OS(ANDROID)
 
+#if USE(GBM) || OS(ANDROID)
     class RenderTargetEGLImage final : public RenderTargetShareableBuffer {
     public:
-#if USE(GBM) || USE(VULKAN)
+#if USE(GBM)
         static std::unique_ptr<RenderTarget> create(AcceleratedSurface&, const WebCore::IntSize&, const BufferFormat&);
         RenderTargetEGLImage(AcceleratedSurface&, const WebCore::IntSize&, EGLImage, WebCore::DMABufBufferAttributes&&, RendererBufferFormat::Usage);
-#if USE(GBM)
-        enum GBMAllocationTag { GBMAllocation };
-        static std::unique_ptr<RenderTarget> create(GBMAllocationTag, AcceleratedSurface&, const WebCore::IntSize&, const BufferFormat&);
-#endif
-#if USE(VULKAN)
-        enum VulkanAllocationTag { VulkanAllocation };
-        static std::unique_ptr<RenderTarget> create(VulkanAllocationTag, AcceleratedSurface&, const WebCore::IntSize&, const BufferFormat&);
-#endif
 #endif
 #if OS(ANDROID)
         RenderTargetEGLImage(AcceleratedSurface&, const WebCore::IntSize&, EGLImage, RefPtr<AHardwareBuffer>&&);
@@ -327,7 +325,24 @@ private:
 
         EGLImage m_image { nullptr };
     };
-#endif // USE(GBM) || USE(VULKAN) || OS(ANDROID)
+#endif // USE(GBM) || OS(ANDROID)
+
+#if USE(VULKAN)
+    class RenderTargetVulkanImage final : public RenderTargetShareableBuffer {
+    public:
+        static std::unique_ptr<RenderTarget> create(AcceleratedSurface&, const WebCore::IntSize&, const BufferFormat&);
+        ~RenderTargetVulkanImage();
+
+    private:
+        RenderTargetVulkanImage(WebCore::Vulkan::GraphicsBuffer&&, GLuint memoryObject);
+
+        bool supportsExplicitSync() const override { return true; }
+
+        WebCore::Vulkan::GraphicsBuffer m_buffer;
+        GLuint memoryObject;
+        RefPtr<WebCore::BitmapTexture> m_texture;
+    };
+#endif // USE(VULKAN)
 
     class RenderTargetSHMImage final : public RenderTargetShareableBuffer {
     public:
@@ -383,6 +398,9 @@ private:
 #if PLATFORM(GTK) || ENABLE(WPE_PLATFORM)
 #if USE(GBM) || OS(ANDROID)
             EGLImage,
+#endif
+#if USE(VULKAN)
+            Vulkan,
 #endif
             SharedMemory,
             Texture,

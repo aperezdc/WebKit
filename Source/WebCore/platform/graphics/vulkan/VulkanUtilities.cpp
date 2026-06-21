@@ -294,6 +294,8 @@ void initializeIfNeeded()
     Device::setSharedDevice(WTF::move(*device));
 }
 
+// Keep in sync with toGLFormat() below; https://pixfmtdb.emersion.fr is
+// handy to discover pixel format mappings across different graphics APIs.
 VkFormat toVulkanFormat(const FourCC fourcc)
 {
     switch (fourcc.value) {
@@ -316,6 +318,29 @@ VkFormat toVulkanFormat(const FourCC fourcc)
         return VK_FORMAT_A2B10G10R10_UNORM_PACK32;
     default:
         return VK_FORMAT_UNDEFINED;
+    }
+}
+
+// Keep in sync with toVulkanFormat() above.
+std::optional<std::pair<unsigned, unsigned>> toGLFormat(VkFormat format)
+{
+    switch (format) {
+    case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
+        return { { GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV } };
+    case VK_FORMAT_R8G8B8A8_UNORM:
+        return { { GL_RGBA, GL_UNSIGNED_BYTE } };
+    case VK_FORMAT_B8G8R8A8_UNORM:
+        return { { GL_BGRA, GL_UNSIGNED_BYTE } };
+    case VK_FORMAT_R8G8B8_UNORM:
+        return { { GL_RGB, GL_UNSIGNED_BYTE } };
+    case VK_FORMAT_R5G6B5_UNORM_PACK16:
+        return { { GL_RGB, GL_UNSIGNED_SHORT_5_6_5 } };
+    case VK_FORMAT_R16G16B16A16_SFLOAT:
+        return { { GL_RGBA, GL_HALF_FLOAT } };
+    case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+        return { { GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV } };
+    default:
+        return std::nullopt;
     }
 }
 

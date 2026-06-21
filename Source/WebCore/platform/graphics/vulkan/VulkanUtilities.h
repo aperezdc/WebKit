@@ -48,6 +48,7 @@ void initializeIfNeeded();
 
 // Returns VK_FORMAT_UNDEFINED when there is no equivalent value in Vulkan.
 VkFormat toVulkanFormat(const FourCC);
+std::optional<std::pair<unsigned, unsigned>> toGLFormat(VkFormat);
 
 } // namespace Vulkan
 } // namespace WebCore

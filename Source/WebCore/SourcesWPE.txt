@@ -97,7 +97,7 @@ platform/graphics/libwpe/PlatformDisplayLibWPE.cpp
 
 platform/graphics/opentype/OpenTypeVerticalData.cpp
 
-platform/graphics/vulkan/GraphicsBuffer.cpp
+platform/graphics/vulkan/VulkanGraphicsBuffer.cpp
 platform/graphics/vulkan/VulkanTypes.cpp
 platform/graphics/vulkan/VulkanUtilities.cpp
 
