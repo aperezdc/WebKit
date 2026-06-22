@@ -66,6 +66,9 @@ WEBKIT_OPTION_DEFINE(ENABLE_JSC_RESTRICTED_OPTIONS_BY_DEFAULT "Whether to enable
 WEBKIT_OPTION_DEPEND(ENABLE_DOCUMENTATION ENABLE_INTROSPECTION)
 WEBKIT_OPTION_DEPEND(USE_GBM USE_LIBDRM)
 
+# TODO(aperezdc): Lift restriction, it should be possible to use Vulkan without GBM.
+WEBKIT_OPTION_DEPEND(USE_VULKAN USE_GBM)
+
 # Private options specific to the GTK port. Changing these options is
 # completely unsupported. They are intended for use only by WebKit developers.
 WEBKIT_OPTION_DEFINE(USE_SPIEL "Whether to enable usage of LibSpiel for speech synthesis." PRIVATE OFF)

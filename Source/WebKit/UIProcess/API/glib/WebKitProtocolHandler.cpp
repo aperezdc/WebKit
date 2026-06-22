@@ -276,6 +276,13 @@ static String renderBufferDescription(WebKitURISchemeRequest* request)
         case RendererBufferDescription::Type::SharedMemory:
             bufferDescription.append("Shared Memory: "_s, formatName);
             break;
+#if USE(VULKAN)
+        case RendererBufferDescription::Type::Vulkan: {
+            auto modifierName = webkitDrmGetModifierName(description.modifier);
+            bufferDescription.append("Vulkan: "_s, formatName, " ("_s, modifierName, ")"_s);
+            break;
+        }
+#endif
 #if OS(ANDROID)
         case RendererBufferDescription::Type::AHardwareBuffer:
             bufferDescription.append("AHardwareBuffer: "_s, formatName);
