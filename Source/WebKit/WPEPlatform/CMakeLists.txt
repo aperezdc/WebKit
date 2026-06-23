@@ -16,6 +16,7 @@ set(WPEPlatform_SOURCES
     ${WEBKIT_DIR}/WPEPlatform/wpe/WPEBufferDMABuf.cpp
     ${WEBKIT_DIR}/WPEPlatform/wpe/WPEBufferFormats.cpp
     ${WEBKIT_DIR}/WPEPlatform/wpe/WPEBufferSHM.cpp
+    ${WEBKIT_DIR}/WPEPlatform/wpe/WPEBufferVulkan.cpp
     ${WEBKIT_DIR}/WPEPlatform/wpe/WPEClipboard.cpp
     ${WEBKIT_DIR}/WPEPlatform/wpe/WPEColor.cpp
     ${WEBKIT_DIR}/WPEPlatform/wpe/WPECursorTheme.cpp
@@ -51,6 +52,7 @@ set(WPEPlatform_INSTALLED_HEADERS
     ${WEBKIT_DIR}/WPEPlatform/wpe/WPEBufferDMABuf.h
     ${WEBKIT_DIR}/WPEPlatform/wpe/WPEBufferFormats.h
     ${WEBKIT_DIR}/WPEPlatform/wpe/WPEBufferSHM.h
+    ${WEBKIT_DIR}/WPEPlatform/wpe/WPEBufferVulkan.h
     ${WEBKIT_DIR}/WPEPlatform/wpe/WPEClipboard.h
     ${WEBKIT_DIR}/WPEPlatform/wpe/WPEColor.h
     ${WEBKIT_DIR}/WPEPlatform/wpe/WPEDRMDevice.h

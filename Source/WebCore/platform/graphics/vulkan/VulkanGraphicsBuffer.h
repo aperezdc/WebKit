@@ -27,6 +27,7 @@
 
 #if USE(VULKAN)
 #include "VulkanTypes.h"
+#include <wtf/UnixFileDescriptor.h>
 
 namespace WebCore {
 namespace Vulkan {
@@ -41,30 +42,39 @@ public:
     GraphicsBuffer(GraphicsBuffer&&) = default;
     GraphicsBuffer& operator=(GraphicsBuffer&&) = default;
 
+    [[nodiscard]] WTF::UnixFileDescriptor fileDescriptor() const;
     const Image& image() const LIFETIME_BOUND { return m_image; }
     const DeviceMemory& memory() const LIFETIME_BOUND { return m_memory; }
     VkFormat format() const { return m_format; }
+    const IntSize& size() const { return m_size; }
     size_t allocatedSize() const { return m_allocatedSize; }
     bool dedicatedAllocation() const { return m_dedicatedAllocation; }
 
 private:
-    GraphicsBuffer(Image&& image, DeviceMemory&& memory, VkFormat format, size_t allocatedSize, bool dedicatedAllocation)
+    GraphicsBuffer(Image&& image, DeviceMemory&& memory, VkFormat format, const IntSize& size, size_t allocatedSize, bool dedicatedAllocation)
         : m_image(WTF::move(image))
         , m_memory(WTF::move(memory))
         , m_format(format)
+        , m_size(size)
         , m_allocatedSize(allocatedSize)
         , m_dedicatedAllocation(dedicatedAllocation)
     {
     }
 
+    GraphicsBuffer(UnixFileDescriptor&&, VkFormat, const IntSize&, size_t allocatedSize, bool dedicatedAllocation);
+
     Image m_image;
     DeviceMemory m_memory;
     VkFormat m_format;
+    IntSize m_size;
     size_t m_allocatedSize;
     bool m_dedicatedAllocation;
 };
 
 } // namespace Vulkan
+
+using VulkanGraphicsBuffer = Vulkan::GraphicsBuffer;
+
 } // namespace WebCore
 
 #endif // USE(VULKAN)

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Igalia S.L.
+ * Copyright (C) 2026 Igalia S.L.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -22,53 +22,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef __WPE_PLATFORM_H__
-#define __WPE_PLATFORM_H__
 
-#define __WPE_PLATFORM_H_INSIDE__
+#include "config.h"
+#include "WPEBufferVulkan.h"
 
-#include <wpe/WPEBuffer.h>
-#include <wpe/WPEBufferDMABuf.h>
-#include <wpe/WPEBufferFormats.h>
-#include <wpe/WPEBufferSHM.h>
-#include <wpe/WPEClipboard.h>
-#include <wpe/WPEColor.h>
-#include <wpe/WPEConfig.h>
-#include <wpe/WPEDRMDevice.h>
-#include <wpe/WPEDefines.h>
-#include <wpe/WPEDisplay.h>
-#include <wpe/WPEEGLError.h>
-#include <wpe/WPEEnumTypes.h>
-#include <wpe/WPEEvent.h>
-#include <wpe/WPEGamepad.h>
-#include <wpe/WPEGamepadManager.h>
-#include <wpe/WPEGestureController.h>
-#include <wpe/WPEInputMethodContext.h>
-#include <wpe/WPEKeymap.h>
-#include <wpe/WPEKeyUnicode.h>
-#include <wpe/WPEKeymapXKB.h>
-#include <wpe/WPEKeysyms.h>
-#include <wpe/WPEKeysyms.h>
-#include <wpe/WPERectangle.h>
-#include <wpe/WPEScreen.h>
-#include <wpe/WPEScreenSyncObserver.h>
-#include <wpe/WPEToplevel.h>
-#include <wpe/WPEVersion.h>
-#include <wpe/WPEView.h>
-#include <wpe/WPEViewAccessible.h>
+#if USE(VULKAN)
+#include <wtf/glib/WTFGType.h>
 
-#ifdef WPE_PLATFORM_BUFFER_ANDROID
-#include <wpe/WPEBufferAndroid.h>
-#endif
+// The Volk header can leave device functions undefined to prevent accidental
+// usage. Instead, use the per-device functions table to avoid the dispatch
+// overhead (up to 7%), see https://github.com/zeux/volk#optimizing-device-calls
+#define VOLK_NO_DEVICE_PROTOTYPES
+#include <volk.h>
 
-#ifdef WPE_PLATFORM_PROCESS_MANAGER_ANDROID
-#include <wpe/WPEProcessManager.h>
-#endif
+/**
+ * WPEBufferVulkan:
+ *
+ * A #WPEBuffer backend by a Vulkan image in device memory.
+ */
+struct _WPEBufferVulkanPrivate {
+    VolkDeviceTable deviceTable;
+    VkDevice device;
+    VkImage image;
+};
+WEBKIT_DEFINE_FINAL_TYPE(WPEBufferVulkan, wpe_buffer_vulkan, WPE_TYPE_BUFFER, WPEBuffer)
 
-#ifdef WPE_PLATFORM_BUFFER_VULKAN
-#include <wpe/WPEBufferVulkan.h>
-#endif
+static void wpeBufferVulkanDispose(GObject* object)
+{
+    auto* priv = WPE_BUFFER_VULKAN(object)->priv;
 
-#undef __WPE_PLATFORM_H_INSIDE__
+    if (priv->image != VK_NULL_HANDLE) {
+        priv->deviceTable.vkDestroyImage(priv->device, priv->image, NULL);
+        priv->image = VK_NULL_HANDLE;
+    }
 
-#endif /* __WPE_PLATFORM_H__ */
+    G_OBJECT_CLASS(wpe_buffer_vulkan_parent_class)->dispose(object);
+}
+
+static void wpe_buffer_vulkan_class_init(WPEBufferVulkanClass* bufferVulkanClass)
+{
+    GObjectClass* objectClass = G_OBJECT_CLASS(bufferVulkanClass);
+    objectClass->dispose = wpeBufferVulkanDispose;
+}
+
+#endif // USE(VULKAN)

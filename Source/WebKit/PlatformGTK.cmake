@@ -70,6 +70,12 @@ if (USE_GBM)
   )
 endif ()
 
+if (USE_VULKAN)
+    list(APPEND WebKit_SERIALIZATION_IN_FILES
+        Shared/glib/VulkanGraphicsBuffer.serialization.in
+    )
+endif ()
+
 list(APPEND WebKit_SERIALIZATION_IN_FILES
     Shared/glib/AvailableInputDevices.serialization.in
     Shared/glib/DMABufBufferAttributes.serialization.in

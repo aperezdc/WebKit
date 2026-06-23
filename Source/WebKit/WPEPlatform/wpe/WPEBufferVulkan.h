@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Igalia S.L.
+ * Copyright (C) 2026 Igalia S.L.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -22,53 +22,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef __WPE_PLATFORM_H__
-#define __WPE_PLATFORM_H__
 
-#define __WPE_PLATFORM_H_INSIDE__
+#ifndef WPEBufferVulkan_h
+#define WPEBufferVulkan_h
 
-#include <wpe/WPEBuffer.h>
-#include <wpe/WPEBufferDMABuf.h>
-#include <wpe/WPEBufferFormats.h>
-#include <wpe/WPEBufferSHM.h>
-#include <wpe/WPEClipboard.h>
-#include <wpe/WPEColor.h>
-#include <wpe/WPEConfig.h>
-#include <wpe/WPEDRMDevice.h>
+#if !defined(__WPE_PLATFORM_H_INSIDE__) && !defined(BUILDING_WEBKIT)
+#error "Only <wpe/wpe-platform.h> can be included directly."
+#endif
+
+#ifndef __GI_SCANNER__
+
 #include <wpe/WPEDefines.h>
-#include <wpe/WPEDisplay.h>
-#include <wpe/WPEEGLError.h>
-#include <wpe/WPEEnumTypes.h>
-#include <wpe/WPEEvent.h>
-#include <wpe/WPEGamepad.h>
-#include <wpe/WPEGamepadManager.h>
-#include <wpe/WPEGestureController.h>
-#include <wpe/WPEInputMethodContext.h>
-#include <wpe/WPEKeymap.h>
-#include <wpe/WPEKeyUnicode.h>
-#include <wpe/WPEKeymapXKB.h>
-#include <wpe/WPEKeysyms.h>
-#include <wpe/WPEKeysyms.h>
-#include <wpe/WPERectangle.h>
-#include <wpe/WPEScreen.h>
-#include <wpe/WPEScreenSyncObserver.h>
-#include <wpe/WPEToplevel.h>
-#include <wpe/WPEVersion.h>
-#include <wpe/WPEView.h>
-#include <wpe/WPEViewAccessible.h>
+#include <wpe/WPEBuffer.h>
 
-#ifdef WPE_PLATFORM_BUFFER_ANDROID
-#include <wpe/WPEBufferAndroid.h>
-#endif
+G_BEGIN_DECLS
 
-#ifdef WPE_PLATFORM_PROCESS_MANAGER_ANDROID
-#include <wpe/WPEProcessManager.h>
-#endif
+typedef struct VkDevice_T* VkDevice;
+typedef struct VkImage_T* VkImage;
 
-#ifdef WPE_PLATFORM_BUFFER_VULKAN
-#include <wpe/WPEBufferVulkan.h>
-#endif
+#define WPE_TYPE_BUFFER_VULKAN (wpe_buffer_vulkan_get_type())
+WPE_API G_DECLARE_FINAL_TYPE (WPEBufferVulkan, wpe_buffer_vulkan, WPE, BUFFER_VULKAN, WPEBuffer)
 
-#undef __WPE_PLATFORM_H_INSIDE__
+WPE_API WPEBufferVulkan *wpe_buffer_vulkan_new        (WPEDisplay      *display,
+                                                       VkDevice         device,
+                                                       VkImage          image);
+WPE_API VkDevice         wpe_buffer_vulkan_get_device (WPEBufferVulkan *buffer);
+WPE_API VkImage          wpe_buffer_vulkan_get_image  (WPEBufferVulkan *buffer);
+WPE_API guint32          wpe_buffer_vulkan_get_format (WPEBufferVulkan *buffer);
 
-#endif /* __WPE_PLATFORM_H__ */
+G_END_DECLS
+
+#endif /* !__GI_SCANNER__ */
+
+#endif /* WPEBufferVulkan_h */

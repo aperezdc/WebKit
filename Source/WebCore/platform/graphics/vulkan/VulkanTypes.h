@@ -336,6 +336,10 @@ private:
 };
 
 } // namespace Vulkan
+
+using VulkanDeviceMemory = Vulkan::DeviceMemory;
+using VulkanImage = Vulkan::Image;
+
 } // namespace WebCore
 
 #endif // USE(VULKAN)

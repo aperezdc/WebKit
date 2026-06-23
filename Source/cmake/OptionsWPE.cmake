@@ -322,6 +322,10 @@ if (ENABLE_WPE_PLATFORM)
         set(WPE_PLATFORM_PROCESS_MANAGER_ANDROID ON)
     endif ()
 
+    if (USE_VULKAN)
+        set(WPE_PLATFORM_BUFFER_VULKAN ON)
+    endif ()
+
     if (ENABLE_WPE_PLATFORM_DRM)
         find_package(LibInput 1.19.0 REQUIRED)
         find_package(Udev REQUIRED)

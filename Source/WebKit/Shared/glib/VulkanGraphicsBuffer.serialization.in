@@ -1,0 +1,12 @@
+#if USE(VULKAN)
+
+header: <WebCore/VulkanGraphicsBuffer.h>
+[RValue, CustomHeader] struct WebCore::Vulkan::GraphicsBuffer {
+	WTF::UnixFileDescriptor fileDescriptor();
+	VkFormat format();
+	WebCore::IntSize size();
+	size_t allocatedSize();
+	bool dedicatedAllocation();
+}
+
+#endif // USE(VULKAN)
