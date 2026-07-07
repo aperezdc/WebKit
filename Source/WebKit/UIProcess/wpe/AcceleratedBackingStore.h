@@ -38,6 +38,10 @@
 #include <wtf/glib/GRefPtr.h>
 #include <wtf/unix/UnixFileDescriptor.h>
 
+#if USE(VULKAN)
+#include <WebCore/VulkanGraphicsBuffer.h>
+#endif
+
 typedef struct _WPEBuffer WPEBuffer;
 typedef struct _WPEView WPEView;
 
@@ -87,6 +91,9 @@ private:
     void didCreateSHMBuffer(uint64_t id, WebCore::ShareableBitmapHandle&&);
 #if OS(ANDROID)
     void didCreateAndroidBuffer(uint64_t id, RefPtr<AHardwareBuffer>&&);
+#endif
+#if USE(VULKAN)
+    void didCreateVulkanBuffer(uint64_t id, WebCore::VulkanGraphicsBuffer&&);
 #endif
     void didChangeBufferConfiguration(uint32_t bufferCount);
     void didDestroyBuffer(uint64_t id);

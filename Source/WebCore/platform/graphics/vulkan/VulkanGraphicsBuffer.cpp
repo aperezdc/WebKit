@@ -35,7 +35,7 @@
 namespace WebCore {
 namespace Vulkan {
 
-Result<GraphicsBuffer> GraphicsBuffer::create(const IntSize& size, const FourCC& fourcc, const std::span<const uint64_t> modifiers)
+Result<GraphicsBuffer> GraphicsBuffer::create(const IntSize& size, const FourCC& fourcc, const std::span<const uint64_t> modifiers [[maybe_unused]])
 {
     if (size.width() <= 0 || size.height() <= 0) {
         RELEASE_LOG_DEBUG(Vulkan, "Vulkan::GraphicsBuffer::create: cannot use size %dx%d", size.width(), size.height());

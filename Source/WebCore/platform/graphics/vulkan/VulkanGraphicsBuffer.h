@@ -27,12 +27,13 @@
 
 #if USE(VULKAN)
 #include "VulkanTypes.h"
-#include <wtf/UnixFileDescriptor.h>
+#include <wtf/ArgumentCoder.h>
+#include <wtf/unix/UnixFileDescriptor.h>
 
 namespace WebCore {
 namespace Vulkan {
 
-struct GraphicsBuffer
+class GraphicsBuffer
 {
     WTF_MAKE_NONCOPYABLE(GraphicsBuffer);
 
@@ -69,6 +70,8 @@ private:
     IntSize m_size;
     size_t m_allocatedSize;
     bool m_dedicatedAllocation;
+
+    friend struct IPC::ArgumentCoder<GraphicsBuffer>;
 };
 
 } // namespace Vulkan

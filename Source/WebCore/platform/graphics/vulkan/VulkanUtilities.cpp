@@ -29,6 +29,7 @@
 #if USE(VULKAN)
 #include "Logging.h"
 #include "PlatformDisplay.h"
+#include <epoxy/gl.h>
 #include <wtf/RuntimeApplicationChecks.h>
 #include <wtf/StdLibExtras.h>
 #include <wtf/Vector.h>
