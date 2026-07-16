@@ -383,6 +383,8 @@ std::unique_ptr<AcceleratedSurface::RenderTarget> AcceleratedSurface::RenderTarg
         return nullptr;
     } else
         int dummyFd [[maybe_unused]] = memoryFd->release();
+
+    return nullptr;
 }
 
 AcceleratedSurface::RenderTargetVulkanImage::~RenderTargetVulkanImage()

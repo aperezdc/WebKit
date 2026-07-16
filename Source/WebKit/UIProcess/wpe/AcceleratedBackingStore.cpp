@@ -43,6 +43,11 @@
 #include <drm_fourcc.h>
 #endif
 
+#if USE(VULKAN)
+#include <WebCore/VulkanTypes.h>
+#include <wpe/WPEBufferVulkan.h>
+#endif
+
 WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_BEGIN
 #include <skia/core/SkColorSpace.h>
 #include <skia/core/SkPixmap.h>
@@ -182,6 +187,18 @@ void AcceleratedBackingStore::didCreateAndroidBuffer(uint64_t id, RefPtr<AHardwa
     notifyBufferConfigurationIfNeeded();
 }
 #endif // OS(ANDROID)
+
+#if USE(VULKAN)
+void AcceleratedBackingStore::didCreateVulkanBuffer(uint64_t id, WebCore::Vulkan::GraphicsBuffer&& vulkanBuffer)
+{
+    auto& device = WebCore::Vulkan::Device::sharedDevice();
+    auto buffer = adoptGRef(WPE_BUFFER(wpe_buffer_vulkan_new(wpe_view_get_display(m_wpeView.get()), device.ptr(), vulkanBuffer.image().leakPtr(), vulkanBuffer.format(), vulkanBuffer.size().width(), vulkanBuffer.size().height(), vulkanBuffer.memory().leakPtr())));
+    m_bufferIDs.add(buffer.get(), id);
+    m_buffers.add(id, WTF::move(buffer));
+
+    notifyBufferConfigurationIfNeeded();
+}
+#endif // USE(VULKAN:)
 
 void AcceleratedBackingStore::didDestroyBuffer(uint64_t id)
 {

@@ -91,6 +91,12 @@ Vulkan::Result<VulkanGraphicsBuffer> VulkanGraphicsBuffer::create(const IntSize&
     return VulkanGraphicsBuffer(WTF::move(*image), WTF::move(*deviceMemory), format, size, memRequirements->size, memDedicatedRequirements->requiresDedicatedAllocation);
 }
 
+VulkanGraphicsBuffer::VulkanGraphicsBuffer(UnixFileDescriptor&&, VkFormat, const IntSize&, size_t allocatedSize, bool dedicatedAllocation)
+{
+    UNUSED_PARAM(allocatedSize);
+    UNUSED_PARAM(dedicatedAllocation);
+}
+
 } // namespace WebCore
 
 #endif // USE(VULKAN)

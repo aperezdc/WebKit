@@ -26,11 +26,11 @@
 #ifndef WPEBufferVulkan_h
 #define WPEBufferVulkan_h
 
-#if !defined(__WPE_PLATFORM_H_INSIDE__) && !defined(BUILDING_WEBKIT)
-#error "Only <wpe/wpe-platform.h> can be included directly."
-#endif
-
 #ifndef __GI_SCANNER__
+
+#if !(defined(VULKAN_H_) || defined(VOLK_H_))
+#error Vulkan headers need to be included beforehand.
+#endif
 
 #include <wpe/WPEDefines.h>
 #include <wpe/WPEBuffer.h>
@@ -45,10 +45,15 @@ WPE_API G_DECLARE_FINAL_TYPE (WPEBufferVulkan, wpe_buffer_vulkan, WPE, BUFFER_VU
 
 WPE_API WPEBufferVulkan *wpe_buffer_vulkan_new        (WPEDisplay      *display,
                                                        VkDevice         device,
-                                                       VkImage          image);
+                                                       VkImage          image,
+                                                       VkFormat         format,
+                                                       gint             width,
+                                                       gint             height,
+                                                       VkDeviceMemory   memory);
 WPE_API VkDevice         wpe_buffer_vulkan_get_device (WPEBufferVulkan *buffer);
 WPE_API VkImage          wpe_buffer_vulkan_get_image  (WPEBufferVulkan *buffer);
 WPE_API guint32          wpe_buffer_vulkan_get_format (WPEBufferVulkan *buffer);
+WPE_API VkDeviceMemory   wpe_buffer_vulkan_get_memory (WPEBufferVulkan *buffer);
 
 G_END_DECLS
 

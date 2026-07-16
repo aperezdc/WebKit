@@ -348,4 +348,13 @@ std::optional<std::pair<unsigned, unsigned>> toGLFormat(VkFormat format)
 } // namespace Vulkan
 } // namespace WebCore
 
+namespace WTF {
+
+template<> bool NODELETE isValidEnum<VkFormat>(std::underlying_type_t<VkFormat> format)
+{
+    return format != std::to_underlying(VK_FORMAT_UNDEFINED);
+}
+
+} // namespace WTF
+
 #endif // USE(VULKAN)

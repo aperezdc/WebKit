@@ -65,7 +65,7 @@
 #include <wpe/WPEProcessManager.h>
 #endif
 
-#ifdef WPE_PLATFORM_BUFFER_VULKAN
+#if defined(WPE_PLATFORM_BUFFER_VULKAN) && defined(VULKAN_H)
 #include <wpe/WPEBufferVulkan.h>
 #endif
 

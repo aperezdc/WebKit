@@ -43,8 +43,13 @@ public:
     VulkanGraphicsBuffer& operator=(VulkanGraphicsBuffer&&) = default;
 
     [[nodiscard]] WTF::UnixFileDescriptor fileDescriptor() const;
+
     const Vulkan::Image& image() const LIFETIME_BOUND { return m_image; }
+    Vulkan::Image& image() LIFETIME_BOUND { return m_image; }
+
     const Vulkan::DeviceMemory& memory() const LIFETIME_BOUND { return m_memory; }
+    Vulkan::DeviceMemory& memory() LIFETIME_BOUND { return m_memory; }
+
     VkFormat format() const { return m_format; }
     const IntSize& size() const { return m_size; }
     size_t allocatedSize() const { return m_allocatedSize; }

@@ -93,7 +93,7 @@ private:
     void didCreateAndroidBuffer(uint64_t id, RefPtr<AHardwareBuffer>&&);
 #endif
 #if USE(VULKAN)
-    void didCreateVulkanBuffer(uint64_t id, WebCore::VulkanGraphicsBuffer&&);
+    void didCreateVulkanBuffer(uint64_t id, WebCore::Vulkan::GraphicsBuffer&&);
 #endif
     void didChangeBufferConfiguration(uint32_t bufferCount);
     void didDestroyBuffer(uint64_t id);

@@ -53,4 +53,10 @@ std::optional<std::pair<unsigned, unsigned>> toGLFormat(VkFormat);
 } // namespace Vulkan
 } // namespace WebCore
 
+namespace WTF {
+
+template<> WEBCORE_EXPORT bool isValidEnum<VkFormat>(std::underlying_type_t<VkFormat>);
+
+} // namespace WTF
+
 #endif // USE(VULKAN)
