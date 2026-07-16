@@ -33,22 +33,21 @@
 #include "VulkanUtilities.h"
 
 namespace WebCore {
-namespace Vulkan {
 
-Result<GraphicsBuffer> GraphicsBuffer::create(const IntSize& size, const FourCC& fourcc, const std::span<const uint64_t> modifiers [[maybe_unused]])
+Vulkan::Result<VulkanGraphicsBuffer> VulkanGraphicsBuffer::create(const IntSize& size, const FourCC& fourcc, const std::span<const uint64_t> modifiers [[maybe_unused]])
 {
     if (size.width() <= 0 || size.height() <= 0) {
         RELEASE_LOG_DEBUG(Vulkan, "Vulkan::GraphicsBuffer::create: cannot use size %dx%d", size.width(), size.height());
         return makeUnexpected(VK_INCOMPLETE);
     }
 
-    auto format = toVulkanFormat(fourcc);
+    auto format = Vulkan::toVulkanFormat(fourcc);
     if (format == VK_FORMAT_UNDEFINED) {
         RELEASE_LOG_DEBUG(Vulkan, "Vulkan::GraphicsBuffer::create: cannot map '%s' to a VkFormat", fourcc.string().data());
         return makeUnexpected(VK_INCOMPLETE);
     }
 
-    ImageCreateInfo createInfo;
+    Vulkan::ImageCreateInfo createInfo;
     createInfo->format = format;
     createInfo->initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     createInfo->imageType = VK_IMAGE_TYPE_2D;
@@ -71,15 +70,15 @@ Result<GraphicsBuffer> GraphicsBuffer::create(const IntSize& size, const FourCC&
     static constexpr auto externalHandleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
 
     // TODO: Use VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID on Android.
-    auto externalMemoryInfo [[maybe_unused]] = createInfo.next<ExternalMemoryImageCreateInfo>(externalHandleType);
+    auto externalMemoryInfo [[maybe_unused]] = createInfo.next<Vulkan::ExternalMemoryImageCreateInfo>(externalHandleType);
 
-    auto& device = Device::sharedDevice();
+    auto& device = Vulkan::Device::sharedDevice();
     auto image = device.createImage(createInfo);
     if (!image)
         return makeUnexpected(image.error());
 
-    auto memRequirements = MemoryRequirements();
-    auto memDedicatedRequirements = memRequirements.next<MemoryDedicatedRequirements>();
+    auto memRequirements = Vulkan::MemoryRequirements();
+    auto memDedicatedRequirements = memRequirements.next<Vulkan::MemoryDedicatedRequirements>();
     image->fillMemoryRequirements(memRequirements);
 
     auto deviceMemory = device.allocateExternalMemory(memRequirements, *image, externalHandleType);
@@ -89,10 +88,9 @@ Result<GraphicsBuffer> GraphicsBuffer::create(const IntSize& size, const FourCC&
     if (auto result = device.bindImageMemory(*image, *deviceMemory); result != VK_SUCCESS)
         return makeUnexpected(result);
 
-    return GraphicsBuffer(WTF::move(*image), WTF::move(*deviceMemory), format, size, memRequirements->size, memDedicatedRequirements->requiresDedicatedAllocation);
+    return VulkanGraphicsBuffer(WTF::move(*image), WTF::move(*deviceMemory), format, size, memRequirements->size, memDedicatedRequirements->requiresDedicatedAllocation);
 }
 
-} // namespace Vulkan
 } // namespace WebCore
 
 #endif // USE(VULKAN)

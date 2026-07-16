@@ -31,28 +31,27 @@
 #include <wtf/unix/UnixFileDescriptor.h>
 
 namespace WebCore {
-namespace Vulkan {
 
-class GraphicsBuffer
+class VulkanGraphicsBuffer
 {
-    WTF_MAKE_NONCOPYABLE(GraphicsBuffer);
+    WTF_MAKE_NONCOPYABLE(VulkanGraphicsBuffer);
 
 public:
-    [[nodiscard]] static Result<GraphicsBuffer> create(const IntSize&, const FourCC&, const std::span<const uint64_t> modifiers);
+    [[nodiscard]] static Vulkan::Result<VulkanGraphicsBuffer> create(const IntSize&, const FourCC&, const std::span<const uint64_t> modifiers);
 
-    GraphicsBuffer(GraphicsBuffer&&) = default;
-    GraphicsBuffer& operator=(GraphicsBuffer&&) = default;
+    VulkanGraphicsBuffer(VulkanGraphicsBuffer&&) = default;
+    VulkanGraphicsBuffer& operator=(VulkanGraphicsBuffer&&) = default;
 
     [[nodiscard]] WTF::UnixFileDescriptor fileDescriptor() const;
-    const Image& image() const LIFETIME_BOUND { return m_image; }
-    const DeviceMemory& memory() const LIFETIME_BOUND { return m_memory; }
+    const Vulkan::Image& image() const LIFETIME_BOUND { return m_image; }
+    const Vulkan::DeviceMemory& memory() const LIFETIME_BOUND { return m_memory; }
     VkFormat format() const { return m_format; }
     const IntSize& size() const { return m_size; }
     size_t allocatedSize() const { return m_allocatedSize; }
     bool dedicatedAllocation() const { return m_dedicatedAllocation; }
 
 private:
-    GraphicsBuffer(Image&& image, DeviceMemory&& memory, VkFormat format, const IntSize& size, size_t allocatedSize, bool dedicatedAllocation)
+    VulkanGraphicsBuffer(Vulkan::Image&& image, Vulkan::DeviceMemory&& memory, VkFormat format, const IntSize& size, size_t allocatedSize, bool dedicatedAllocation)
         : m_image(WTF::move(image))
         , m_memory(WTF::move(memory))
         , m_format(format)
@@ -62,21 +61,21 @@ private:
     {
     }
 
-    GraphicsBuffer(UnixFileDescriptor&&, VkFormat, const IntSize&, size_t allocatedSize, bool dedicatedAllocation);
+    VulkanGraphicsBuffer(UnixFileDescriptor&&, VkFormat, const IntSize&, size_t allocatedSize, bool dedicatedAllocation);
 
-    Image m_image;
-    DeviceMemory m_memory;
+    Vulkan::Image m_image;
+    Vulkan::DeviceMemory m_memory;
     VkFormat m_format;
     IntSize m_size;
     size_t m_allocatedSize;
     bool m_dedicatedAllocation;
 
-    friend struct IPC::ArgumentCoder<GraphicsBuffer>;
+    friend struct IPC::ArgumentCoder<VulkanGraphicsBuffer>;
 };
 
+namespace Vulkan {
+using GraphicsBuffer = VulkanGraphicsBuffer;
 } // namespace Vulkan
-
-using VulkanGraphicsBuffer = Vulkan::GraphicsBuffer;
 
 } // namespace WebCore
 

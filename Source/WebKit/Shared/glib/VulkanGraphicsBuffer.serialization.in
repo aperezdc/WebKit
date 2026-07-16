@@ -1,7 +1,7 @@
 #if USE(VULKAN)
 
 header: <WebCore/VulkanGraphicsBuffer.h>
-[RValue, CustomHeader] class WebCore::Vulkan::GraphicsBuffer {
+[RValue, CustomHeader] class WebCore::VulkanGraphicsBuffer {
 	WTF::UnixFileDescriptor fileDescriptor();
 	VkFormat format();
 	WebCore::IntSize size();
