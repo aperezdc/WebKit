@@ -22,6 +22,7 @@
 #include <WebCore/NativeImage.h>
 #include <WebCore/SQLiteDatabase.h>
 #include <WebCore/SQLiteStatement.h>
+#include <WebCore/SQLiteStatementAutoResetScope.h>
 #include <wtf/CompletionHandler.h>
 #include <wtf/HashMap.h>
 #include <wtf/ListHashSet.h>
@@ -66,6 +67,16 @@ private:
     std::optional<int64_t> addIcon(const String&, const Vector<uint8_t>&);
     void updateIconTimestamp(int64_t iconID, int64_t timestamp);
     void deleteIcon(int64_t);
+
+    enum class StatementType : uint8_t {
+        IconIDForURL,
+        SetIconIDForPageURL,
+        IconData,
+        AddIcon,
+        AddIconData,
+    };
+
+    std::optional<WebCore::SQLiteStatementAutoResetScope> cachedStatement(StatementType);
 
     Ref<WorkQueue> m_workQueue;
     AllowDatabaseWrite m_allowDatabaseWrite { AllowDatabaseWrite::Yes };

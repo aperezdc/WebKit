@@ -208,6 +208,63 @@ void IconDatabase::populatePageURLToIconURLsMap()
     startPruneTimer();
 }
 
+std::optional<WebCore::SQLiteStatementAutoResetScope> IconDatabase::cachedStatement(IconDatabase::StatementType type)
+{
+    ASSERT(!isMainRunLoop());
+    ASSERT(m_db->isOpen());
+
+    switch (type) {
+    case StatementType::IconIDForURL:
+        if (!m_iconIDForIconURLStatement) {
+            m_iconIDForIconURLStatement = m_db->prepareStatement("SELECT IconInfo.iconID, IconInfo.stamp FROM IconInfo WHERE IconInfo.url = (?);"_s);
+            if (!m_iconIDForIconURLStatement) {
+                RELEASE_LOG_ERROR(IconDatabase, "Preparing statement iconIDForIconURL failed (%i) - %s", m_db->lastError(), m_db->lastErrorMsg());
+                return std::nullopt;
+            }
+        }
+        return WebCore::SQLiteStatementAutoResetScope { m_iconIDForIconURLStatement.get() };
+    case StatementType::SetIconIDForPageURL:
+        if (!m_setIconIDForPageURLStatement) {
+            m_setIconIDForPageURLStatement = m_db->prepareStatement("INSERT INTO PageURL (url, iconID) VALUES ((?), ?);"_s);
+            if (!m_setIconIDForPageURLStatement) {
+                RELEASE_LOG_ERROR(IconDatabase, "Preparing statement setIconIDForPageURL failed (%i) - %s", m_db->lastError(), m_db->lastErrorMsg());
+                return std::nullopt;
+            }
+        }
+        return WebCore::SQLiteStatementAutoResetScope { m_setIconIDForPageURLStatement.get() };
+    case StatementType::IconData:
+        if (!m_iconDataStatement) {
+            m_iconDataStatement = m_db->prepareStatement("SELECT IconData.data FROM IconData WHERE IconData.iconID = (?);"_s);
+            if (!m_iconDataStatement) {
+                RELEASE_LOG_ERROR(IconDatabase, "Preparing statement iconData failed (%i) - %s", m_db->lastError(), m_db->lastErrorMsg());
+                return std::nullopt;
+            }
+        }
+        return WebCore::SQLiteStatementAutoResetScope { m_iconDataStatement.get() };
+    case StatementType::AddIcon:
+        if (!m_addIconStatement) {
+            m_addIconStatement = m_db->prepareStatement("INSERT INTO IconInfo (url, stamp) VALUES (?, unixepoch());"_s);
+            if (!m_addIconStatement) {
+                RELEASE_LOG_ERROR(IconDatabase, "Preparing statement addIcon failed (%i) - %s", m_db->lastError(), m_db->lastErrorMsg());
+                return std::nullopt;
+            }
+        }
+        return WebCore::SQLiteStatementAutoResetScope { m_addIconStatement.get() };
+    case StatementType::AddIconData:
+        if (!m_addIconDataStatement) {
+            m_addIconDataStatement = m_db->prepareStatement("INSERT INTO IconData (iconID, data) VALUES (?, ?);"_s);
+            if (!m_addIconDataStatement) {
+                RELEASE_LOG_ERROR(IconDatabase, "Preparing statement addIconData failed (%i) - %s", m_db->lastError(), m_db->lastErrorMsg());
+                return std::nullopt;
+            }
+        }
+        return WebCore::SQLiteStatementAutoResetScope { m_addIconDataStatement.get() };
+    }
+
+    ASSERT_NOT_REACHED();
+    return std::nullopt;
+}
+
 void IconDatabase::clearStatements()
 {
     ASSERT(!isMainRunLoop());
@@ -292,120 +349,90 @@ void IconDatabase::startClearLoadedIconsTimer()
 
 std::optional<int64_t> IconDatabase::iconIDForIconURL(const String& iconURL, bool& expired)
 {
-    ASSERT(!isMainRunLoop());
-    ASSERT(m_db->isOpen());
+    auto optionalStatement = cachedStatement(StatementType::IconIDForURL);
+    if (!optionalStatement)
+        return std::nullopt;
 
-    if (!m_iconIDForIconURLStatement) {
-        m_iconIDForIconURLStatement = m_db->prepareStatement("SELECT IconInfo.iconID, IconInfo.stamp FROM IconInfo WHERE IconInfo.url = (?);"_s);
-        if (!m_iconIDForIconURLStatement) {
-            RELEASE_LOG_ERROR(IconDatabase, "Preparing statement iconIDForIconURL failed (%i) - %s", m_db->lastError(), m_db->lastErrorMsg());
-            return std::nullopt;
-        }
-    }
-
-    if (m_iconIDForIconURLStatement->bindText(1, iconURL) != SQLITE_OK) {
+    CheckedPtr statement = optionalStatement->get();
+    if (!statement || statement->bindText(1, iconURL) != SQLITE_OK) {
         RELEASE_LOG_ERROR(IconDatabase, "Could not bind iconURL (%i) - %s", m_db->lastError(), m_db->lastErrorMsg());
         return std::nullopt;
     }
 
     std::optional<int64_t> result;
-    if (m_iconIDForIconURLStatement->step() == SQLITE_ROW) {
-        result = m_iconIDForIconURLStatement->columnInt64(0);
-        expired = m_iconIDForIconURLStatement->columnInt64(1) <= floor((WallTime::now() - iconExpirationTime).secondsSinceEpoch().seconds());
+    if (statement->step() == SQLITE_ROW) {
+        result = statement->columnInt64(0);
+        expired = statement->columnInt64(1) <= floor((WallTime::now() - iconExpirationTime).secondsSinceEpoch().seconds());
     }
 
-    m_iconIDForIconURLStatement->reset();
     return result;
 }
 
 bool IconDatabase::setIconIDForPageURL(int64_t iconID, const String& pageURL)
 {
-    ASSERT(!isMainRunLoop());
-    ASSERT(m_db->isOpen());
     ASSERT(m_allowDatabaseWrite == AllowDatabaseWrite::Yes);
 
-    if (!m_setIconIDForPageURLStatement) {
-        m_setIconIDForPageURLStatement = m_db->prepareStatement("INSERT INTO PageURL (url, iconID) VALUES ((?), ?);"_s);
-        if (!m_setIconIDForPageURLStatement) {
-            RELEASE_LOG_ERROR(IconDatabase, "Preparing statement setIconIDForPageURL failed (%i) - %s", m_db->lastError(), m_db->lastErrorMsg());
-            return false;
-        }
-    }
+    auto optionalStatement = cachedStatement(StatementType::SetIconIDForPageURL);
+    if (!optionalStatement)
+        return false;
 
-    if (m_setIconIDForPageURLStatement->bindText(1, pageURL) != SQLITE_OK
-        || m_setIconIDForPageURLStatement->bindInt64(2, iconID) != SQLITE_OK) {
+    CheckedPtr statement = optionalStatement->get();
+    if (!statement || statement->bindText(1, pageURL) != SQLITE_OK || statement->bindInt64(2, iconID) != SQLITE_OK) {
         RELEASE_LOG_ERROR(IconDatabase, "Could not bind pageURL or iconID (%i) - %s", m_db->lastError(), m_db->lastErrorMsg());
         return false;
     }
 
-    if (m_setIconIDForPageURLStatement->step() != SQLITE_DONE)
+    if (statement->step() != SQLITE_DONE)
         ASSERT_NOT_REACHED();
 
-    m_setIconIDForPageURLStatement->reset();
     return true;
 }
 
 Vector<uint8_t> IconDatabase::iconData(int64_t iconID)
 {
-    ASSERT(!isMainRunLoop());
-    ASSERT(m_db->isOpen());
+    auto optionalStatement = cachedStatement(StatementType::IconData);
+    if (!optionalStatement)
+        return { };
 
-    if (!m_iconDataStatement) {
-        m_iconDataStatement = m_db->prepareStatement("SELECT IconData.data FROM IconData WHERE IconData.iconID = (?);"_s);
-        if (!m_iconDataStatement) {
-            RELEASE_LOG_ERROR(IconDatabase, "Preparing statement iconData failed (%i) - %s", m_db->lastError(), m_db->lastErrorMsg());
-            return { };
-        }
-    }
-
-    if (m_iconDataStatement->bindInt64(1, iconID) != SQLITE_OK) {
+    CheckedPtr statement = optionalStatement->get();
+    if (!statement || statement->bindInt64(1, iconID) != SQLITE_OK) {
         RELEASE_LOG_ERROR(IconDatabase, "Could not bind iconID (%i) - %s", m_db->lastError(), m_db->lastErrorMsg());
         return { };
     }
 
-    auto result = m_iconDataStatement->columnBlob(0);
-    m_iconDataStatement->reset();
-    return result;
+    return statement->columnBlob(0);
 }
 
 std::optional<int64_t> IconDatabase::addIcon(const String& iconURL, const Vector<uint8_t>& iconData)
 {
-    ASSERT(!isMainRunLoop());
-    ASSERT(m_db->isOpen());
     ASSERT(m_allowDatabaseWrite == AllowDatabaseWrite::Yes);
 
-    if (!m_addIconStatement) {
-        m_addIconStatement = m_db->prepareStatement("INSERT INTO IconInfo (url, stamp) VALUES (?, unixepoch());"_s);
-        if (!m_addIconStatement) {
-            RELEASE_LOG_ERROR(IconDatabase, "Preparing statement addIcon failed (%i) - %s", m_db->lastError(), m_db->lastErrorMsg());
-            return std::nullopt;
-        }
-    }
-    if (!m_addIconDataStatement) {
-        m_addIconDataStatement = m_db->prepareStatement("INSERT INTO IconData (iconID, data) VALUES (?, ?);"_s);
-        if (!m_addIconDataStatement) {
-            RELEASE_LOG_ERROR(IconDatabase, "Preparing statement addIconData failed (%i) - %s", m_db->lastError(), m_db->lastErrorMsg());
-            return std::nullopt;
-        }
-    }
 
-    if (m_addIconStatement->bindText(1, iconURL) != SQLITE_OK) {
+    auto optionalStatement = cachedStatement(StatementType::AddIcon);
+    if (!optionalStatement)
+        return std::nullopt;
+    CheckedPtr addIconStatement = optionalStatement->get();
+
+    optionalStatement = cachedStatement(StatementType::AddIconData);
+    if (!optionalStatement)
+        return std::nullopt;
+    CheckedPtr addIconDataStatement = optionalStatement->get();
+
+    WebCore::SQLiteTransaction transaction { m_db.get() };
+    transaction.begin();
+
+    if (!addIconStatement || addIconStatement->bindText(1, iconURL) != SQLITE_OK || !addIconStatement->executeCommand()) {
         RELEASE_LOG_ERROR(IconDatabase, "Could not bind iconURL (%i) - %s", m_db->lastError(), m_db->lastErrorMsg());
         return std::nullopt;
     }
 
-    m_addIconStatement->step();
-    m_addIconStatement->reset();
-
     auto iconID = m_db->lastInsertRowID();
-    if (m_addIconDataStatement->bindInt64(1, iconID) != SQLITE_OK || m_addIconDataStatement->bindBlob(2, iconData) != SQLITE_OK) {
+    if (!addIconDataStatement || addIconDataStatement->bindInt64(1, iconID) != SQLITE_OK || addIconDataStatement->bindBlob(2, iconData) != SQLITE_OK || !addIconDataStatement->executeCommand()) {
         RELEASE_LOG_ERROR(IconDatabase, "Could not bind iconID (%i) - %s", m_db->lastError(), m_db->lastErrorMsg());
         return std::nullopt;
     }
 
-    m_addIconDataStatement->step();
-    m_addIconDataStatement->reset();
-
+    transaction.commit();
     return iconID;
 }
 
