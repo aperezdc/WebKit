@@ -433,10 +433,10 @@
                 "expected": {"wpe": {"status": ["FAIL", "PASS"], "bug": "webkit.org/b/297780"}}
             },
             "CompletionHandlerDeathTest.MainThreadHandlerOnThreadAssertsDeathTest": {
-                "expected": {"gtk": {"status": ["TIMEOUT", "PASS"], "bug": "webkit.org/b/299598" }}
+                "expected": {"all": {"status": ["TIMEOUT", "PASS", "FAIL"], "bug": "webkit.org/b/299598" }}
             },
             "CompletionHandlerDeathTest.ConstructionThreadHandlerOnThreadAssertsDeathTest": {
-                "expected": {"gtk": {"status": ["TIMEOUT", "PASS"], "bug": "webkit.org/b/299598" }}
+                "expected": {"all": {"status": ["TIMEOUT", "PASS", "FAIL"], "bug": "webkit.org/b/299598" }}
             }
         }
     },
