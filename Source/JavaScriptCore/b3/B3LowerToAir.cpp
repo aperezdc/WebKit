@@ -79,6 +79,7 @@
 #include "B3WasmAddressValue.h"
 #include <wtf/IndexMap.h>
 #include <wtf/IndexSet.h>
+#include <wtf/Scope.h>
 #include <wtf/StdLibExtras.h>
 
 #if !ASSERT_ENABLED
@@ -2229,6 +2230,7 @@ private:
     };
 
 #if CPU(ARM64)
+
     static bool isComparisonOpcode(B3::Opcode opcode)
     {
         switch (opcode) {
@@ -2277,11 +2279,19 @@ private:
         }
     }
 
-    CompareChainNode* findCompareChain(Value* value, SegmentedVector<CompareChainNode>& nodes, Vector<CompareChainNode*, 16>& logicalNodes, Vector<Value*, 16> usedValues)
+    CompareChainNode* findCompareChain(Value* value, SegmentedVector<CompareChainNode>& nodes, Vector<CompareChainNode*, 16>& logicalNodes, Vector<Value*, 16>& usedValues)
     {
         dataLogLnIf(B3LowerToAirInternal::verbose, "    findCompareChain: nodes.size()=", nodes.size(), ", value=", pointerDump(value));
         if (!value)
             return nullptr;
+
+        // Roll back logicalNodes/usedValues unless rollback.release() is reached.
+        size_t savedLogicalSize = logicalNodes.size();
+        size_t savedUsedSize = usedValues.size();
+        auto rollback = makeScopeExit([&] {
+            logicalNodes.shrink(savedLogicalSize);
+            usedValues.shrink(savedUsedSize);
+        });
 
         B3::Opcode opcode = value->opcode();
         dataLogLnIf(B3LowerToAirInternal::verbose, "    findCompareChain: opcode=", opcode);
@@ -2308,6 +2318,7 @@ private:
                     dataLogLnIf(B3LowerToAirInternal::verbose, "    findCompareChain: applying negation to chain");
                     negatedChain->markRequiresNegation();
                     usedValues.append(value);
+                    rollback.release();
                     return negatedChain;
                 }
             }
@@ -2318,6 +2329,7 @@ private:
             node->relCond = relationalConditionForOpcode(opcode);
             dataLogLnIf(B3LowerToAirInternal::verbose, "    findCompareChain: created comparison node");
             usedValues.append(value);
+            rollback.release();
             return node;
         }
 
@@ -2335,6 +2347,9 @@ private:
 
             // Negation handling: detect (chain) == 0 pattern
             // This optimizes patterns like !(a && b) which become (a && b) == 0
+            //
+            // FIXME: is this guard reachable? value's children must have the same type, child(0) must be integral,
+            // unclear whether the recursive call to findCompareChain can return int64
             if (value->type() != Int32 && value->child(1)->isInt(1)) {
                 dataLogLnIf(B3LowerToAirInternal::verbose, "    findCompareChain: detected == 0 pattern, checking for negation");
                 CompareChainNode* negatedChain = findCompareChain(value->child(0), nodes, logicalNodes, usedValues);
@@ -2342,9 +2357,11 @@ private:
                     dataLogLnIf(B3LowerToAirInternal::verbose, "    findCompareChain: applying negation to chain");
                     negatedChain->markRequiresNegation();
                     usedValues.append(value);
+                    rollback.release();
                     return negatedChain;
                 }
             }
+            return nullptr;
         }
 
         // Check if this is a BitAnd or BitOr
@@ -2378,7 +2395,6 @@ private:
             // We don't allow combining two logic operations
             if (!leftNode->isComparison() && !rightNode->isComparison()) {
                 dataLogLnIf(B3LowerToAirInternal::verbose, "    findCompareChain: both children are logic ops, rejecting");
-                logicalNodes.clear();
                 return nullptr;
             }
 
@@ -2398,6 +2414,7 @@ private:
             logicalNodes.append(node);
             usedValues.append(value);
             dataLogLnIf(B3LowerToAirInternal::verbose, "    findCompareChain: created logic op node (", (opcode == BitAnd ? "AND" : "OR"), ")");
+            rollback.release();
             return node;
         }
 
