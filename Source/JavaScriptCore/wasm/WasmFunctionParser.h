@@ -219,6 +219,7 @@ private:
     };
 
     [[nodiscard]] PartialResult checkBlockFallthrough(const ControlType&, FallThroughStateTag);
+    [[nodiscard]] PartialResult endBlockAndCheckResultTypes(ControlEntry&);
 
     enum BranchConditionalityTag {
         Unconditional,
@@ -1823,6 +1824,19 @@ auto FunctionParser<Context>::checkBlockFallthrough(const ControlType& controlDa
             m_expressionStack[i].setType(expectedType);
     }
 
+    return { };
+}
+
+template<typename Context>
+auto FunctionParser<Context>::endBlockAndCheckResultTypes(ControlEntry& entry) -> PartialResult
+{
+    // Widen each result to the block signature type before ending the block.
+    // FIXME: mutating the expression stack for the block result is effectful, but there's no
+    // better API yet. See https://bugs.webkit.org/show_bug.cgi?id=164353
+    WASM_FAIL_IF_HELPER_FAILS(checkBlockFallthrough(entry.controlData, MergePoint));
+    // We should avoid adding other callsites of endBlock. Since a new block is a sign of a
+    // merge point and it would be a security bug to fail to widen the types.
+    WASM_TRY_ADD_TO_CONTEXT(endBlock(entry, m_expressionStack));
     return { };
 }
 
@@ -3587,8 +3601,8 @@ FOR_EACH_WASM_MEMORY_STORE_OP(CREATE_CASE)
         WASM_VALIDATOR_FAIL_IF(!ControlType::isTry(targetData) && !ControlType::isTopLevel(targetData), "delegate target isn't a try or the top level block");
 
         WASM_TRY_ADD_TO_CONTEXT(addDelegate(targetData, controlEntry.controlData));
-        WASM_FAIL_IF_HELPER_FAILS(checkBlockFallthrough(controlEntry.controlData, NewSiblingBlock));
-        WASM_TRY_ADD_TO_CONTEXT(endBlock(controlEntry, m_expressionStack));
+        // Unlike the sibling catch/catch_all arms, delegate ends the try block, so it widens results.
+        WASM_FAIL_IF_HELPER_FAILS(endBlockAndCheckResultTypes(controlEntry));
         m_expressionStack.swap(controlEntry.enclosedExpressionStack);
         resetLocalInitStackToHeight(controlEntry.localInitStackHeight);
         return { };
@@ -3723,11 +3737,7 @@ FOR_EACH_WASM_MEMORY_STORE_OP(CREATE_CASE)
             WASM_TRY_ADD_TO_CONTEXT(addElse(data.controlData, m_expressionStack));
             m_expressionStack = WTF::move(data.elseBlockStack);
         }
-        // FIXME: This is a little weird in that it will modify the expressionStack for the result of the block.
-        // That's a little too effectful for me but I don't have a better API right now.
-        // see: https://bugs.webkit.org/show_bug.cgi?id=164353
-        WASM_FAIL_IF_HELPER_FAILS(checkBlockFallthrough(data.controlData, MergePoint));
-        WASM_TRY_ADD_TO_CONTEXT(endBlock(data, m_expressionStack));
+        WASM_FAIL_IF_HELPER_FAILS(endBlockAndCheckResultTypes(data));
         m_expressionStack.swap(data.enclosedExpressionStack);
         if (!ControlType::isTopLevel(data.controlData))
             resetLocalInitStackToHeight(data.localInitStackHeight);
@@ -3789,36 +3799,36 @@ FOR_EACH_WASM_MEMORY_STORE_OP(CREATE_CASE)
         return { };
     }
 #if ENABLE(B3_JIT)
-            case ExtSIMD: {
-                WASM_PARSER_FAIL_IF(!Options::useWasmSIMD(), "wasm-simd is not enabled"_s);
-                m_context.notifyFunctionUsesSIMD();
-                WASM_PARSER_FAIL_IF(!parseVarUInt32(m_currentExtOp), "can't parse wasm extended opcode"_s);
-                m_context.willParseExtendedOpcode();
-        
-                constexpr bool isReachable = true;
-        
-                ExtSIMDOpType op = static_cast<ExtSIMDOpType>(m_currentExtOp);
-                if (Options::dumpWasmOpcodeStatistics()) [[unlikely]]
-                    WasmOpcodeCounter::singleton().increment(op);
-        
-                switch (op) {
-                #define CREATE_SIMD_CASE(name, _, laneOp, lane, signMode) case ExtSIMDOpType::name: return simd<isReachable>(SIMDLaneOperation::laneOp, lane, signMode);
-                FOR_EACH_WASM_EXT_SIMD_GENERAL_OP(CREATE_SIMD_CASE)
-                #undef CREATE_SIMD_CASE
-                #define CREATE_SIMD_CASE(name, _, laneOp, lane, signMode, relArg) case ExtSIMDOpType::name: return simd<isReachable>(SIMDLaneOperation::laneOp, lane, signMode, relArg);
-                FOR_EACH_WASM_EXT_SIMD_REL_OP(CREATE_SIMD_CASE)
-                #undef CREATE_SIMD_CASE
-                default:
-                    WASM_PARSER_FAIL_IF(true, "invalid extended simd op "_s, m_currentExtOp);
-                    break;
+                case ExtSIMD: {
+                    WASM_PARSER_FAIL_IF(!Options::useWasmSIMD(), "wasm-simd is not enabled"_s);
+                    m_context.notifyFunctionUsesSIMD();
+                    WASM_PARSER_FAIL_IF(!parseVarUInt32(m_currentExtOp), "can't parse wasm extended opcode"_s);
+                    m_context.willParseExtendedOpcode();
+            
+                    constexpr bool isReachable = true;
+            
+                    ExtSIMDOpType op = static_cast<ExtSIMDOpType>(m_currentExtOp);
+                    if (Options::dumpWasmOpcodeStatistics()) [[unlikely]]
+                        WasmOpcodeCounter::singleton().increment(op);
+            
+                    switch (op) {
+                    #define CREATE_SIMD_CASE(name, _, laneOp, lane, signMode) case ExtSIMDOpType::name: return simd<isReachable>(SIMDLaneOperation::laneOp, lane, signMode);
+                    FOR_EACH_WASM_EXT_SIMD_GENERAL_OP(CREATE_SIMD_CASE)
+                    #undef CREATE_SIMD_CASE
+                    #define CREATE_SIMD_CASE(name, _, laneOp, lane, signMode, relArg) case ExtSIMDOpType::name: return simd<isReachable>(SIMDLaneOperation::laneOp, lane, signMode, relArg);
+                    FOR_EACH_WASM_EXT_SIMD_REL_OP(CREATE_SIMD_CASE)
+                    #undef CREATE_SIMD_CASE
+                    default:
+                        WASM_PARSER_FAIL_IF(true, "invalid extended simd op "_s, m_currentExtOp);
+                        break;
+                    }
+                    return { };
                 }
-                return { };
-            }
-        #else
-            case ExtSIMD:
-                WASM_PARSER_FAIL_IF(true, "wasm-simd is not supported"_s);
-                return { };
-        #endif
+            #else
+                case ExtSIMD:
+                    WASM_PARSER_FAIL_IF(true, "wasm-simd is not supported"_s);
+                    return { };
+            #endif
     }
 
     ASSERT_NOT_REACHED();
@@ -3916,8 +3926,7 @@ auto FunctionParser<Context>::parseUnreachableExpression() -> PartialResult
             if (ControlType::isIf(data.controlData)) {
                 WASM_TRY_ADD_TO_CONTEXT(addElseToUnreachable(data.controlData));
                 m_expressionStack = WTF::move(data.elseBlockStack);
-                WASM_FAIL_IF_HELPER_FAILS(checkBlockFallthrough(data.controlData, MergePoint));
-                WASM_TRY_ADD_TO_CONTEXT(endBlock(data, m_expressionStack));
+                WASM_FAIL_IF_HELPER_FAILS(endBlockAndCheckResultTypes(data));
             } else {
                 Stack emptyStack;
                 WASM_TRY_ADD_TO_CONTEXT(addEndToUnreachable(data, emptyStack));
