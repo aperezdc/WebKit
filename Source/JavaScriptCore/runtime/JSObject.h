@@ -812,7 +812,7 @@ public:
     {
         structure()->flattenDictionaryStructure(vm, this);
     }
-    void shiftButterflyAfterFlattening(const GCSafeConcurrentJSLocker&, VM&, Structure* structure, size_t outOfLineCapacityAfter);
+    void shiftButterflyAfterFlattening(const ConcurrentJSLocker&, VM&, Structure*, size_t outOfLineCapacityAfter);
 
     JSGlobalObject* globalObject() const
     {

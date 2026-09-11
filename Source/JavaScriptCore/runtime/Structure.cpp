@@ -992,6 +992,11 @@ Structure* Structure::flattenDictionaryStructure(VM& vm, JSObject* object)
     ASSERT(isDictionary());
     ASSERT(object->structure() == this);
 
+    // Must outlive cellLocker. The collection this defers until scope exit would otherwise run
+    // while the cell lock is held, and the collector takes that same cell lock to scan an array
+    // storage butterfly, so it would deadlock against us.
+    DeferGC deferGC(vm);
+
     Locker<JSCellLock> cellLocker(NoLockingNecessary);
 
     PropertyTable* table = nullptr;
@@ -1010,7 +1015,7 @@ Structure* Structure::flattenDictionaryStructure(VM& vm, JSObject* object)
     if (beforeOutOfLineCapacity != afterOutOfLineCapacity)
         cellLocker = Locker { object->cellLock() };
 
-    GCSafeConcurrentJSLocker locker(m_lock, vm);
+    ConcurrentJSLocker locker(m_lock);
 
     object->setStructureIDDirectly(id().nuke());
     WTF::storeStoreFence();
