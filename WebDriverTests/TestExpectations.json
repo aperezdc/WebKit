@@ -237,7 +237,7 @@
                 "expected": {"all": {"status": ["FAIL"], "bug": "webkit.org/b/288335"}}
             },
             "test_concurrent_event_handler_registration": {
-                "expected": {"gtk": {"status": ["FAIL"], "bug": "webkit.org/b/288335"}, "wpe": {"status": ["PASS", "FAIL"], "bug": "webkit.org/b/310506"}}
+                "expected": {"all": {"status": ["PASS", "TIMEOUT"], "bug": "webkit.org/b/310506"}}
             },
             "test_event_callback_data_consistency": {
                 "expected": {"all": {"status": ["FAIL"], "bug": "webkit.org/b/288335"}}
@@ -2557,7 +2557,7 @@
     "imported/w3c/webdriver/tests/classic/element_send_keys/send_keys.py": {
         "subtests": {
             "test_surrogates": {
-                "expected": {"all": {"status": ["FAIL"], "bug": "webkit.org/b/184967"}}
+                "expected": {"all": {"status": ["FAIL", "TIMEOUT"], "bug": "webkit.org/b/184967"}}
             },
             "test_no_top_browsing_context": {
                 "expected": {
@@ -4871,11 +4871,31 @@
         "subtests": {
             "test_add_same_preload_script_twice": {
                 "expected": { "all": { "status": ["PASS"]}}
+            },
+            "test_add_preload_script_with_error": {
+                "expected": { "all": { "status": ["TIMEOUT"], "bug": "webkit.org/b/288057"}}
             }
         }
     },
     "imported/w3c/webdriver/tests/bidi/script/add_preload_script/arguments.py": {
-        "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288057"}}
+        "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288057"}},
+        "subtests": {
+            "test_channel[default]": {
+                "expected": { "all": { "status": ["TIMEOUT"], "bug": "webkit.org/b/288057"}}
+            },
+            "test_channel[with ownership]": {
+                "expected": { "all": { "status": ["TIMEOUT"], "bug": "webkit.org/b/288057"}}
+            },
+            "test_channel[with serializationOptions]": {
+                "expected": { "all": { "status": ["TIMEOUT"], "bug": "webkit.org/b/288057"}}
+            },
+            "test_channel_with_multiple_arguments": {
+                "expected": { "all": { "status": ["TIMEOUT"], "bug": "webkit.org/b/288057"}}
+            },
+            "test_mutation_observer": {
+                "expected": { "all": { "status": ["TIMEOUT"], "bug": "webkit.org/b/288057"}}
+            }
+        }
     },
     "imported/w3c/webdriver/tests/bidi/script/add_preload_script/contexts.py": {
         "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288057"}},
@@ -4892,7 +4912,24 @@
         }
     },
     "imported/w3c/webdriver/tests/bidi/script/add_preload_script/execution_order_tentative.py": {
-        "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288057"}}
+        "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288057"}},
+        "subtests": {
+            "test_preload_script_properties_available_immediately[popup-current_context_with_url]": {
+                "expected": { "all": { "status": ["TIMEOUT"], "bug": "webkit.org/b/288057"}}
+            },
+            "test_preload_script_properties_available_immediately[popup-current_context_without_url]": {
+                "expected": { "all": { "status": ["TIMEOUT"], "bug": "webkit.org/b/288057"}}
+            },
+            "test_preload_script_properties_available_immediately[popup-data_url]": {
+                "expected": { "all": { "status": ["TIMEOUT"], "bug": "webkit.org/b/288057"}}
+            },
+            "test_preload_script_properties_available_immediately[popup-opener_context_with_url]": {
+                "expected": { "all": { "status": ["TIMEOUT"], "bug": "webkit.org/b/288057"}}
+            },
+            "test_preload_script_properties_available_immediately[popup-opener_context_without_url]": {
+                "expected": { "all": { "status": ["TIMEOUT"], "bug": "webkit.org/b/288057"}}
+            }
+        }
     },
     "imported/w3c/webdriver/tests/bidi/script/add_preload_script/invalid.py": {
         "subtests": {
@@ -5737,10 +5774,26 @@
     },
 
     "imported/w3c/webdriver/tests/bidi/session/capabilities/unhandled_prompt_behavior/file/accept.py": {
-        "expected": {"all": {"status": ["FAIL"], "bug": "webkit.org/289307"}}
+        "expected": {"all": {"status": ["FAIL"], "bug": "webkit.org/289307"}},
+        "subtests": {
+            "test_string_accept": {
+                "expected": {"all": {"status": ["TIMEOUT"], "bug": "webkit.org/289307"}}
+            },
+            "test_string_accept_and_notify": {
+                "expected": {"all": {"status": ["TIMEOUT"], "bug": "webkit.org/289307"}}
+            }
+        }
     },
     "imported/w3c/webdriver/tests/bidi/session/capabilities/unhandled_prompt_behavior/file/dismiss.py": {
-        "expected": {"all": {"status": ["FAIL"], "bug": "webkit.org/289307"}}
+        "expected": {"all": {"status": ["FAIL"], "bug": "webkit.org/289307"}},
+        "subtests": {
+            "test_string_dismiss": {
+                "expected": {"all": {"status": ["TIMEOUT"], "bug": "webkit.org/289307"}}
+            },
+            "test_string_dismiss_and_notify": {
+                "expected": {"all": {"status": ["TIMEOUT"], "bug": "webkit.org/289307"}}
+            }
+        }
     },
     "imported/w3c/webdriver/tests/bidi/session/capabilities/unhandled_prompt_behavior/file/ignore.py": {
         "expected": {"all": {"status": ["FAIL"], "bug": "webkit.org/289307"}}
